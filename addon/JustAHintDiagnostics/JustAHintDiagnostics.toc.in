@@ -1,0 +1,11 @@
+## Interface: @INTERFACE@
+## Title: Just a Hint: Diagnostics
+## Notes: Explicit quest-data and native-area probes. Forever compatibility is unverified.
+## Author: Just a Hint
+## Version: 0.0.10
+## SavedVariablesPerCharacter: JustAHintDiagnosticsDB
+
+Core.lua
+ClientAdapter.lua
+AreaProbe.lua
+Commands.lua

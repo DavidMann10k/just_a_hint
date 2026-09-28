@@ -1,0 +1,9 @@
+dist/
+__pycache__/
+*.pyc
+luac.out
+.jah/
+.jah-local.json
+.venv/
+.DS_Store
+Thumbs.db

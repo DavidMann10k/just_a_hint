@@ -1,0 +1,40 @@
+name: Prepare preview candidate
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version matching the release profile
+        required: true
+        default: '0.7.0'
+        type: string
+      interface:
+        description: Target client interface matching the release profile
+        required: true
+        default: '16001'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+      - name: Check and prepare preview
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_INTERFACE: ${{ inputs.interface }}
+        run: python dev.py release --version "$RELEASE_VERSION" --interface "$RELEASE_INTERFACE"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: preview-${{ inputs.version }}-interface${{ inputs.interface }}
+          path: dist/releases/*/*
+          if-no-files-found: error

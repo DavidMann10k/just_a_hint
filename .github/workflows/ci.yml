@@ -1,0 +1,42 @@
+name: Validate
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable-tools:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python dev.py test --python-only
+      - name: Build reader fixture without a game installation
+        run: python dev.py build --interface 999999
+      - name: Build diagnostic fixture without a game installation
+        run: python dev.py build --interface 999999 --addon JustAHintDiagnostics
+      - uses: actions/upload-artifact@v6
+        with:
+          name: addon-fixtures-${{ matrix.os }}
+          path: |
+            dist/*.zip
+            dist/*.manifest.json
+            dist/*.sha256
+  lua-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: sudo apt-get update && sudo apt-get install -y lua5.1
+      - run: python dev.py test --lua-only

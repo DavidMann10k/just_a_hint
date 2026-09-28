@@ -1,0 +1,22 @@
+## Interface: @INTERFACE@
+## Title: Just a Hint
+## Notes: Requested quest direction and area hints in Blizzard's UI. Use /jah to start or restore Blizzard guidance.
+## Author: Just a Hint contributors
+## Version: 0.7.0
+## SavedVariables: JustAHintDB
+
+Core.lua
+ClientAdapter.lua
+HintController.lua
+HintData.lua
+RegionHints.lua
+MinimapBearing.lua
+HintFeedback.lua
+SettingsPanel.lua
+QuestArea.lua
+Hints.lua
+GuidanceGuard.lua
+StatusReport.lua
+NativeHintMarkers.lua
+NativeQuestPane.lua
+Commands.lua

@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "addon": "JustAHint",
+  "version": "0.5.7",
+  "interface": 16001,
+  "status": "preview",
+  "nativeValidation": "partial",
+  "observedClient": {
+    "name": "Forever beta",
+    "version": "1.60.1",
+    "build": "70009"
+  },
+  "pending": [
+    "Shared Quests/Settings tabs, checkbox clicks and common close behavior",
+    "Cross-zone Hint omission and local availability after zoning",
+    "Completed-quest turn-in destination usefulness and hand-in cleanup",
+    "Known-region preference after point fallback update",
+    "Tracker quest-item and combat compatibility",
+    "Zoning and broader map coverage",
+    "Final-build settings, reload and restoration regression checks"
+  ]
+}
