@@ -1,5 +1,7 @@
 # Just a Hint
 
+![Just a Hint — an unofficial addon for World of Warcraft: Forever, with a gold direction needle beside a painted sunset valley](docs/images/branding/just-a-hint-banner.jpg)
+
 Just a Hint is a restrained quest tracker that does nothing unless you ask for a hint. It gives you more specific hints as you get closer, but only if you ask.
 
 That way your brain can stay engaged with, and immersed in, the game world.
@@ -66,4 +68,6 @@ python dev.py deploy
 
 `deploy` checks, builds and installs the addon with a rollback backup. Native quest data supplies hints; no external quest database or service is required.
 
-[Development](docs/DEVELOPMENT.md) · [Releasing](docs/RELEASING.md) · [Contributing](CONTRIBUTING.md) · [Design](DESIGN.md) · [Client checks](docs/CLIENT_TEST_PLAN.md) · [API findings](API_FINDINGS.md) · [MIT license](LICENSE)
+[Development](docs/DEVELOPMENT.md) · [Releasing](docs/RELEASING.md) · [Contributing](CONTRIBUTING.md) · [Design](DESIGN.md) · [Client checks](docs/CLIENT_TEST_PLAN.md) · [API findings](API_FINDINGS.md) · [Branding](docs/branding/README.md) · [MIT license](LICENSE)
+
+Just a Hint is an unofficial community addon, unaffiliated with and not endorsed by Blizzard Entertainment. World of Warcraft and Warcraft are trademarks of Blizzard Entertainment, Inc.
