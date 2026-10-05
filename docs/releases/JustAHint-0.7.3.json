@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "addon": "JustAHint",
+  "version": "0.7.3",
+  "interface": 16001,
+  "status": "preview",
+  "nativeValidation": "partial",
+  "observedClient": {
+    "name": "Forever beta",
+    "version": "1.60.1",
+    "build": "70205"
+  },
+  "clientEvidence": "Target derived from local client installation metadata.",
+  "pending": [
+    "Smaller location-pin legibility at different UI and map scales",
+    "Fresh-install activation, tracker hiding, combat and other UI addons",
+    "Restore and recovery after partial failure",
+    "Quest-item access through native UI",
+    "Hint lifecycle, animation, region loading and broader map coverage"
+  ]
+}

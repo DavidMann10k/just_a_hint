@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3 — smaller location pins
+
+- Halve nearby location pins from 24 to 12 screen units, preserving their map coordinates and scale compensation.
+- Include the illustrated README guide and screenshots in source bundles.
+- Updating an existing installation requires `/reload`.
+
 ## 0.7.2 — automatic activation
 
 - Activate on login by default and hide Blizzard's quest tracker. Native map and minimap guidance remain suppressed; hints require explicit requests through the Map & Quest Log.

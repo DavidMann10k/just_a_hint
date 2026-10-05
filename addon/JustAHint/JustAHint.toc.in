@@ -2,7 +2,7 @@
 ## Title: Just a Hint
 ## Notes: Replaces Blizzard's quest tracker with hints on request. Active by default. /jah opens settings.
 ## Author: Just a Hint contributors
-## Version: 0.7.2
+## Version: 0.7.3
 ## SavedVariables: JustAHintDB
 
 Core.lua

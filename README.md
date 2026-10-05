@@ -6,7 +6,7 @@ That way your brain can stay engaged with, and immersed in, the game world.
 
 Just a Hint replaces Blizzard's quest tracker. It activates automatically, hides the default tracker and disables automatic navigation, map objectives and minimap quest markers. Read quests and request hints through the Map & Quest Log.
 
-[Download 0.7.2 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.2) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
+[Download 0.7.3 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.3) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
 
 Target: **Forever beta 1.60.1 / build 70205 / interface 16001**.
 

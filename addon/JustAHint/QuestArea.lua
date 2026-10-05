@@ -53,7 +53,7 @@ local function marker(active, current)
     if not Area.marker.ready then error("nearby-pin-setup-incomplete") end
     Area.marker:SetParent(current.canvas)
     Area.marker:SetFrameLevel(Area.frame:GetFrameLevel() + 1)
-    Area.marker:SetSize(24 / current.scale, 24 / current.scale)
+    Area.marker:SetSize(12 / current.scale, 12 / current.scale)
     Area.marker:ClearAllPoints()
     Area.marker:SetPoint("CENTER", current.canvas, "TOPLEFT", point.x * current.width, -point.y * current.height)
     Area.marker:Show()
