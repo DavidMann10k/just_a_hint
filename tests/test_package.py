@@ -110,7 +110,7 @@ class PackageTests(unittest.TestCase):
                  patch.object(PACKAGE.sys, "platform", "linux"), \
                  patch.dict(PACKAGE.os.environ, {}, clear=True):
                 result = PACKAGE.discover_client()
-            self.assertEqual(result["clientDirectory"], str(client))
+            self.assertEqual(result["clientDirectory"], str(client.resolve()))
 
     def test_client_package_stores_local_evidence_outside_addon(self):
         with tempfile.TemporaryDirectory(prefix="jah-client-package-test-") as directory:
