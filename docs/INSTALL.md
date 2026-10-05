@@ -1,5 +1,9 @@
 # Install and use Just a Hint
 
+Just a Hint is a restrained quest tracker that does nothing unless you ask for a hint. It gives you more specific hints as you get closer, but only if you ask.
+
+That way your brain can stay engaged with, and immersed in, the game world.
+
 The 0.7.1 preview targets Forever beta 1.60.1, build 70205, interface 16001. Native validation is partial: the arrow animation is tester-confirmed, while broader final-build coverage remains pending. See the bundled RELEASE_NOTES.md for known limitations. Players do not need Python or Lua installed separately.
 
 1. Close the game for the first installation.

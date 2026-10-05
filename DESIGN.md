@@ -1,5 +1,7 @@
 # Just a Hint — current design
 
+Just a Hint is a restrained quest tracker: more specific hints as you get closer, but only when you ask. Its purpose is to keep your brain engaged with, and immersed in, the game world.
+
 Reading a quest is not a request for navigation. Getting close is not a request for a more detailed hint. Only an explicit Hint request authorizes disclosure; arrival removes assistance.
 
 ## Reading and controls

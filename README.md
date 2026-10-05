@@ -1,10 +1,12 @@
 # Just a Hint
 
-**Reading a quest is not a request for navigation. Getting close is not a request for a more detailed hint.**
+Just a Hint is a restrained quest tracker that does nothing unless you ask for a hint. It gives you more specific hints as you get closer, but only if you ask.
 
-Just a Hint adds optional quest assistance to the existing Map & Quest Log in the Forever beta. Read and accept quests normally; ask for help only when you want it.
+That way your brain can stay engaged with, and immersed in, the game world.
 
-[Source and contributions](https://github.com/DavidMann10k/just_a_hint) · [Report a bug or playtest result](https://github.com/DavidMann10k/just_a_hint/issues)
+Ask from a distance for a direction. Ask again nearby for an area to search or a location clue. Read and accept quests normally through the game's existing Map & Quest Log.
+
+[Download the preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.1) · [Source and contributions](https://github.com/DavidMann10k/just_a_hint) · [Report a bug or playtest result](https://github.com/DavidMann10k/just_a_hint/issues)
 
 - **Another zone:** Hint is omitted until a usable destination exists on your current map.
 - **Far away:** Hint checks available regions, then closes the map and flies an arrow from screen center to the minimap toward the nearest confirmed location, with a short trail and landing pulses. Animation, chat, sound and pulses are optional.
