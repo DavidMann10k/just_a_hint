@@ -23,6 +23,8 @@ Extract `JustAHint.zip` into `Interface/AddOns`, enable the addon and restart th
 
 Run `/jah restore` out of combat on each activated character before disabling or removing the addon. Restoration keeps Just a Hint disabled across reloads; `/jah start` re-enables it.
 
+Report bugs and feedback through [GitHub Issues](https://github.com/DavidMann10k/just_a_hint/issues/new/choose). For bugs, include reproduction steps and addon/client versions; `/jah status` helps. For feedback, tell us whether the hint helped you keep exploring or gave too much away.
+
 ## Development
 
 Python 3.11+ and Lua 5.1 or LuaJIT. Windows, macOS and Linux.
