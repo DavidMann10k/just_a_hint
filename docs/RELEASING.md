@@ -8,19 +8,19 @@ Candidate preparation is local and does not install, tag, push or publish anythi
 4. Run:
 
 ```text
-python dev.py release --version 0.7.0 --interface 16001
+python dev.py release --version 0.7.1 --interface 16001
 ```
 
 The interface must agree with the profile. Explicit flags, JAH_INTERFACE or configured interface are accepted; release preparation does not discover a game or infer an unverified target. The command requires all Python and Lua checks to pass, then builds the runtime archive and a reproducible source archive.
 
-Outputs live under `dist/releases/JustAHint-0.7.0-interface16001/`:
+Outputs live under `dist/releases/JustAHint-0.7.1-interface16001/`:
 
 | Asset | Purpose |
 | --- | --- |
 | JustAHint.zip | Installable addon and license. |
 | JustAHint.manifest.json | Runtime file hashes, version and target interface. |
 | JustAHint.sha256 | Runtime ZIP checksum. |
-| JustAHint-0.7.0-source.zip | Public source, tests, tools and docs. |
+| JustAHint-0.7.1-source.zip | Public source, tests, tools and docs. |
 | INSTALL.md / RELEASE_NOTES.md | Player instructions and known limitations. |
 | RELEASE.json | Target and verification record. |
 | SHA256SUMS | Checksums for every other candidate asset. |
@@ -38,3 +38,7 @@ These workflow files are prepared locally. Hosted results require an actual GitH
 ## Before publishing
 
 Review the candidate's notes and checksums, and record remaining playtest cases honestly. Verify native behavior on the exact supported build. Publication is a separate deliberate action; the current preview remains partially verified. Consult [the client test plan](CLIENT_TEST_PLAN.md) and [API findings](../API_FINDINGS.md).
+
+After reviewing the candidate and passing the validation workflow for its commit, deliberately create and push its matching `vVERSION` tag. `.github/workflows/publish-preview.yml` runs the full local pipeline again on that tagged commit, verifies all candidate checksums, uploads the complete bundle to a draft GitHub prerelease, and publishes it only after uploads succeed. The workflow uses GitHub's supplied token; local GitHub CLI sign-in is not required. Local `dev.py release` remains preparation only.
+
+For example, the 0.7.1 publication tag is `v0.7.1`. Published assets remain immutable; do not move an existing release tag or replace published assets. A release in a private repository is available only to people with repository access. Repository visibility is managed separately from publication.

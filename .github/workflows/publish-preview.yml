@@ -1,0 +1,47 @@
+name: Publish preview
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+      - name: Check and prepare tagged preview
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          RELEASE_VERSION="${RELEASE_TAG#v}"
+          python dev.py release --version "$RELEASE_VERSION" --interface 16001
+          cd "dist/releases/JustAHint-$RELEASE_VERSION-interface16001"
+          sha256sum --check SHA256SUMS
+      - name: Upload complete draft and publish prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          RELEASE_VERSION="${RELEASE_TAG#v}"
+          RELEASE_DIR="dist/releases/JustAHint-$RELEASE_VERSION-interface16001"
+          gh release create "$RELEASE_TAG" "$RELEASE_DIR"/* \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease \
+            --title "Just a Hint $RELEASE_VERSION preview" \
+            --notes-file "$RELEASE_DIR/RELEASE_NOTES.md"
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease

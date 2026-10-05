@@ -17,7 +17,7 @@ Region samples are approximate; unavailable geometry uses the native quest point
 
 ## Play the preview
 
-The current **0.7.0 preview** targets **Forever 1.60.1 / build 70009 / interface 16001**. It has passed selected native playtests; broader quest, combat and map coverage remain in progress. See [compatibility and pending checks](docs/releases/JustAHint-0.7.0.md). Mock tests do not establish client compatibility.
+The current **0.7.1 preview** targets **Forever 1.60.1 / build 70205 / interface 16001**. The tester confirms the arrow animation in the current installation; earlier versions passed selected quest playtests on build 70009. Broader quest, combat and map coverage remain in progress. See [compatibility and pending checks](docs/releases/JustAHint-0.7.1.md). Mock tests do not establish client compatibility.
 
 Install the addon ZIP using [these instructions](docs/INSTALL.md), restart the client, and run `/jah start` out of combat. Click a quest in the right-hand tracker to open its normal details. **Hint** appears below the standard buttons when a usable native destination exists; it is disabled while data loads.
 
@@ -49,7 +49,7 @@ python dev.py build --interface 16001
 Prepare a checked preview bundle, including source, release notes and checksums:
 
 ```text
-python dev.py release --version 0.7.0 --interface 16001
+python dev.py release --version 0.7.1 --interface 16001
 ```
 
 This command neither installs nor publishes. [Development](docs/DEVELOPMENT.md) explains configuration and rollback; [releasing](docs/RELEASING.md) explains candidate preparation and CI. Build artifacts exclude local paths, saved game data and diagnostics captures.

@@ -20,3 +20,9 @@ The candidate remains a preview for Forever 1.60.1 / build 70009 / interface 160
 ## 0.6.0 superseding scope
 
 The user removes the previously retained standalone reader. QuestReader.lua, TrackerIntegration.lua and prose-reader adapter functions are deleted from the player package. Reader-mode preferences and UI are retired; SettingsPanel and StatusReport are independent addon-owned dialogs. NativeHintMarkers provides read-only observation with noninteractive overlays on the native quest list/tracker. There is no fallback quest reader and no click-handler replacement. Older rows above describe the 0.5.9 review, not retained 0.6.0 runtime behavior. Native placement remains pending client verification.
+
+## 0.7.1 arrow-flight preview
+
+The animation's basic visible behavior is tester-confirmed on the current installation. The 0.7.1 notes target local client metadata for Forever 1.60.1 / build 70205 / interface 16001 and retain partial native validation. Broader animation, region-aware guidance, native markers, quest items/combat and final restoration checks remain listed explicitly.
+
+Runtime and TOC versions match the release profile. Player instructions include five feedback controls and the update-from-0.7.0 reload path. Runtime packaging contains only declared addon files and the license; source packaging excludes local configuration, raw captures and backups. A deliberate matching version-tag push runs full checks and checksum verification before creating a complete draft and publishing the GitHub prerelease. Repository visibility remains separate from release publication.

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.1 — arrow-flight preview
 
 - Make requested directions visible with an optional arrow flight from screen center to the minimap: a brief reveal, curved trail, shrinking arrow and gold landing ripples.
 - Follow live minimap position, scale and rotation, and clean up interrupted animations without replaying feedback or leaving the bearing hidden.

@@ -2,7 +2,7 @@
 ## Title: Just a Hint
 ## Notes: Requested quest direction and area hints in Blizzard's UI. Use /jah to start or restore Blizzard guidance.
 ## Author: Just a Hint contributors
-## Version: 0.7.0
+## Version: 0.7.1
 ## SavedVariables: JustAHintDB
 
 Core.lua

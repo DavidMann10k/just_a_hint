@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "addon": "JustAHint",
+  "version": "0.7.1",
+  "interface": 16001,
+  "status": "preview",
+  "nativeValidation": "partial",
+  "observedClient": {
+    "name": "Forever beta",
+    "version": "1.60.1",
+    "build": "70205"
+  },
+  "clientEvidence": "Local installation metadata; no paired GetBuildInfo capture was supplied with the animation observation.",
+  "nativeObservations": [
+    {
+      "date": "2026-10-05",
+      "feature": "Requested arrow flight",
+      "result": "Tester-reported visible success",
+      "observation": "animation is good.",
+      "scope": "One session; quest, stage, scale and separate interruption checks were not supplied."
+    }
+  ],
+  "pending": [
+    "Flight cancellation, unusual UI/minimap scales and positions, and settings-label fit",
+    "Invisible production query, loading duration and native map closing after completion",
+    "Nearest confirmed sample usefulness and arrival at any region on multi-site quests",
+    "Fresh session region availability, conservative edge distances and point fallback",
+    "Native quest-list/tracker marker placement and recycled/hidden row behavior",
+    "Settings-only panel, activation and legacy reader-preference migration",
+    "Cross-zone Hint omission and local availability after zoning",
+    "Completed-quest turn-in destination usefulness and hand-in cleanup",
+    "Known-region preference after point fallback update",
+    "Tracker quest-item and combat compatibility",
+    "Zoning and broader map coverage",
+    "Final-build settings, reload and restoration regression checks"
+  ]
+}
