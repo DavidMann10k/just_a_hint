@@ -1,6 +1,7 @@
 -- UI policy fixtures; these do not verify native rendering or secure actions.
 local total=0
 local function equal(a,b) assert(a==b,'expected '..tostring(b)..', got '..tostring(a)) end
+local function near(a,b,tolerance) assert(math.abs(a-b)<(tolerance or 0.00001),'expected near '..tostring(b)..', got '..tostring(a)) end
 local function test(name,fn)
  local ok,err=pcall(fn);assert(ok,name..': '..tostring(err));total=total+1;print('ok - '..name)
 end
@@ -13,8 +14,8 @@ local function fixture(saved)
  local function ui(parent)
   local f={shown=true,enabled=true,scripts={},points={},parent=parent}
   for _,name in ipairs({'SetAllPoints','SetFrameLevel','EnableMouse','SetBackdrop','SetBackdropColor',
-   'SetFrameStrata','SetClampedToScreen','SetScale','SetJustifyH','SetJustifyV','SetRotation','SetColorTexture',
-   'SetAtlas','SetVertexColor','SetBackdropBorderColor','SetMovable','RegisterForDrag','SetFontObject','SetFont','SetSpacing','StartMoving','StopMovingOrSizing'}) do
+   'SetClampedToScreen','SetJustifyH','SetJustifyV','SetColorTexture',
+   'SetVertexColor','SetBackdropBorderColor','SetMovable','RegisterForDrag','SetFontObject','SetFont','SetSpacing','StartMoving','StopMovingOrSizing'}) do
    f[name]=function() if s.textureError and name=='SetColorTexture' then error('restricted texture') end end
   end
   function f:SetPoint(...) self.points[#self.points+1]={...} end
@@ -31,6 +32,11 @@ local function fixture(saved)
   function f:Disable() self.enabled=false end
   function f:SetText(text) self.text=text end
   function f:SetAlpha(alpha) self.alpha=alpha end
+  function f:SetAtlas(atlas) if s.atlasError then error('atlas unavailable') end;self.atlas=atlas end
+  function f:SetRotation(angle) self.rotation=angle end
+  function f:SetScale(scale) self.scale=scale end
+  function f:SetFrameStrata(strata) self.strata=strata end
+  function f:EnableMouse(enabled) self.mouseEnabled=enabled end
   function f:SetScript(name,fn) self.scripts[name]=fn end
   function f:RegisterEvent(event)
    if s.refuseEvents then error('event unavailable') end
@@ -47,7 +53,7 @@ local function fixture(saved)
   function f:GetHeight() return self.height or 160 end
   function f:GetFrameLevel() return 1 end
   function f:GetFrameStrata() return 'DIALOG' end
-  function f:GetEffectiveScale() return 1 end
+  function f:GetEffectiveScale() return self.scale or 1 end
   function f:GetRect() return unpack(self.rect or {100,100,160,160}) end
   function f:SetChecked(value) self.checked=value end
   function f:GetChecked() return self.checked end
@@ -87,7 +93,8 @@ local function fixture(saved)
  env.DEFAULT_CHAT_FRAME={AddMessage=function(_,text) s.messages[#s.messages+1]=text end}
  env.JustAHintDB=saved
  local ns={};load(ns,env,'Core');ns.Initialize()
- ns.Guard={active=true,Action=function() return "restore" end};ns.Bearing={frame=ui(env.Minimap)}
+ ns.Guard={active=true,Action=function() return "restore" end};ns.Bearing={frame=ui(env.Minimap),atlas='Navigation-Tracked-Arrow'}
+ ns.Bearing.frame.arrow=ui();ns.Bearing.frame.arrow:SetSize(16,24)
  ns.Hints={active={id=1},controller={mode='bearing',visible=true},
   Request=function(id) s.requests=s.requests+1;s.requestID=id end,
   UpdateButton=function(button,id)
@@ -106,6 +113,8 @@ test('preferences preserve false and reload never starts feedback',function()
  equal(ns.DB.presentation.text,false);equal(ns.DB.presentation.arrowPulse,false)
  equal(ns.DB.presentation.standalone,nil);equal(ns.DB.presentation.sound,true)
  equal(ns.Feedback.elapsed,nil);equal(s.requests,0);equal(#s.messages,0)
+ equal(ns.DB.presentation.arrowFlight,true);equal(ns.Feedback.flying,nil)
+ ns=fixture({presentation={arrowFlight=false}});equal(ns.DB.presentation.arrowFlight,false)
 end)
 test('plainspoken direction uses world bearings and broad distances',function()
  local ns=fixture();local words={'north','northeast','east','southeast','south','southwest','west','northwest'}
@@ -117,6 +126,7 @@ test('plainspoken direction uses world bearings and broad distances',function()
 end)
 test('explicit bearing produces a bounded pulse without closing settings',function()
  local ns,s,env=fixture();ns.Feedback.x,ns.Feedback.y=1,0
+ ns.SettingsPanel.Set('arrowFlight',false)
  ns.Feedback.BearingRequested(sample(1,0))
  equal(env.WorldMapFrame:IsShown(),true);equal(ns.Reader,nil)
  equal(s.closes,nil);equal(s.sounds,1);equal(#s.messages,1);equal(ns.Feedback.elapsed,0)
@@ -126,7 +136,7 @@ test('explicit bearing produces a bounded pulse without closing settings',functi
 end)
 test('settings independently disable feedback without changing the active hint',function()
  local ns,s=fixture();local active=ns.Hints.active
- for _,key in ipairs({'arrowPulse','minimapPulse','sound','text'}) do ns.SettingsPanel.Set(key,false) end
+ for _,key in ipairs({'arrowFlight','arrowPulse','minimapPulse','sound','text'}) do ns.SettingsPanel.Set(key,false) end
  ns.Feedback.BearingRequested(sample(1,0));equal(s.sounds,0);equal(#s.messages,0);equal(ns.Feedback.frame,nil)
  equal(ns.Hints.active,active);ns.SettingsPanel.Open()
  for key,check in pairs(ns.SettingsPanel.frame.checks) do equal(check:GetChecked(),ns.SettingsPanel.Value(key)) end
@@ -137,11 +147,14 @@ test('chat duplicates are limited while explicit requests can pulse again',funct
  s.time=11;ns.Feedback.BearingRequested(sample(1,0));equal(#s.messages,2)
 end)
 test('arrival gaps hidden minimap and errors cannot revive feedback',function()
- for _,case in ipairs({'arrival','gap','hidden','guard'}) do
+ for _,case in ipairs({'arrival','gap','hidden','guard','replacement','area','guard-problem'}) do
   local ns,s,env=fixture();ns.Feedback.BearingRequested(sample(1,0))
   if case=='arrival' then ns.Hints.active=nil elseif case=='gap' then ns.Hints.controller.visible=false
-  elseif case=='hidden' then env.Minimap:Hide() else ns.Guard.active=false end
+  elseif case=='hidden' then env.Minimap:Hide() elseif case=='guard' then ns.Guard.active=false
+  elseif case=='replacement' then ns.Hints.active={id=1} elseif case=='area' then ns.Hints.controller.mode='area'
+  else ns.Guard.problem='failed' end
   ns.Feedback.Update(0.1);equal(ns.Feedback.elapsed,nil);equal(ns.Feedback.frame:IsShown(),false)
+  equal(ns.Bearing.frame.arrow.alpha,1);equal(ns.Feedback.flying,nil)
   ns.Hints.active={id=1};ns.Hints.controller.visible=true;env.Minimap:Show();ns.Guard.active=true
   ns.Feedback.Update(0.1);equal(ns.Feedback.frame:IsShown(),false);equal(s.sounds,1)
  end
@@ -160,9 +173,79 @@ test('a hidden arrow has no deferred notification',function()
 end)
 test('arrow and minimap pulses can be disabled independently',function()
  for _,key in ipairs({'arrowPulse','minimapPulse'}) do
-  local ns=fixture();ns.SettingsPanel.Set(key,false);ns.Feedback.BearingRequested(sample(1,0));ns.Feedback.Update(0.3)
+  local ns=fixture();ns.SettingsPanel.Set('arrowFlight',false);ns.SettingsPanel.Set(key,false)
+  ns.Feedback.BearingRequested(sample(1,0));ns.Feedback.Update(0.3)
   equal(ns.Feedback.frame.rim[1].alpha>0,key~='minimapPulse')
   equal(ns.Feedback.frame.halo[1].alpha>0,key~='arrowPulse')
+ end
+end)
+test('requested arrow reveals at screen center, follows a curved trail and hands off to a landing ripple',function()
+ local ns,s,env=fixture();env.Minimap.rect={1680,840,160,160};ns.Feedback.x,ns.Feedback.y=1,0
+ ns.Feedback.BearingRequested(sample(1,0));local frame=ns.Feedback.frame
+ equal(frame.parent,env.UIParent);equal(frame.strata,'TOOLTIP');equal(frame.mouseEnabled,false)
+ equal(frame.flight.atlas,ns.Bearing.atlas);equal(ns.Bearing.frame.arrow.alpha,0)
+ local point=frame.flight.points[1];near(point[4],960);near(point[5],540)
+ ns.Feedback.Update(0.18);near(frame.flight.height,64);equal(frame.flight.alpha,1)
+ ns.Feedback.Update(0.46);point=frame.flight.points[1]
+ near(point[4],(960+1824)/2-380*0.06);near(point[5],(540+920)/2+864*0.06)
+ assert(frame.flight.height<64);assert(frame.trail[1]:IsShown());assert(frame.trail[1].alpha>0)
+ equal(frame.rim[1].alpha,0);equal(frame.halo[1].alpha,0)
+ ns.Feedback.Update(0.33);point=frame.flight.points[1]
+ near(point[4],1824,1);near(point[5],920,1);near(frame.flight.height,24,0.1)
+ near(frame.flight.rotation,-math.pi/2,0.01)
+ ns.Feedback.Update(0.02);equal(ns.Feedback.flying,nil);equal(frame.flight:IsShown(),false)
+ equal(ns.Bearing.frame.arrow.alpha,1)
+ for _,texture in ipairs(frame.trail) do equal(texture:IsShown(),false) end
+ ns.Feedback.Update(0.15);assert(frame.rim[1].alpha>0);assert(frame.halo[1].alpha>0)
+ for i=1,3 do ns.Feedback.Update(0.4) end
+ equal(ns.Feedback.elapsed,nil);equal(frame:IsShown(),false);equal(s.sounds,1);equal(#s.messages,1)
+ ns.Feedback.BearingRequested(sample(1,0));equal(ns.Feedback.frame,frame);equal(#frame.trail,5)
+ equal(ns.Feedback.flying,true);equal(s.requests,0)
+end)
+test('flight and landing track the live bearing and moved or scaled minimap on wide and narrow screens',function()
+ for _,screen in ipairs({{1920,1080},{800,600}}) do
+  local ns,s,env=fixture();env.UIParent:SetSize(screen[1],screen[2]);env.UIParent:SetScale(0.8)
+  env.Minimap:SetScale(0.6);env.Minimap.rect={600,440,200,160}
+  ns.Feedback.BearingRequested(sample(1,0));local frame=ns.Feedback.frame
+  near(frame.flight.points[1][4],screen[1]/2);near(frame.flight.points[1][5],screen[2]/2)
+  ns.Feedback.Update(0.4);env.Minimap.rect={520,420,200,160};ns.Feedback.x,ns.Feedback.y=0,-1
+  ns.Feedback.Update(0.4);ns.Feedback.Update(0.17)
+  -- Effective scale ratio is 0.75: the south-rim position is (465, 327).
+  near(frame.flight.points[1][4],465,1);near(frame.flight.points[1][5],327,1)
+  near(math.abs(frame.flight.rotation),math.pi,0.01);near(frame.flight.height,18,0.1)
+  ns.Feedback.Update(0.02);ns.Feedback.Update(0.15)
+  local point=frame.halo[1].points[1]
+  near(point[5],327);assert(point[4]>465)
+  equal(ns.Bearing.frame.arrow.alpha,1);equal(ns.Hints.active.id,1)
+ end
+end)
+test('flight remains independent of pulses and can be disabled during animation without hiding the bearing',function()
+ local ns,s=fixture();local active=ns.Hints.active
+ ns.SettingsPanel.Set('arrowPulse',false);ns.SettingsPanel.Set('minimapPulse',false)
+ ns.Feedback.BearingRequested(sample(1,0));ns.Feedback.Update(0.4)
+ equal(ns.Feedback.flying,true);equal(ns.Bearing.frame.arrow.alpha,0)
+ ns.SettingsPanel.Set('arrowFlight',false)
+ equal(ns.Feedback.elapsed,nil);equal(ns.Feedback.frame:IsShown(),false);equal(ns.Bearing.frame.arrow.alpha,1)
+ equal(ns.Hints.active,active);equal(ns.Bearing.frame:IsVisible(),true)
+ ns.SettingsPanel.Set('arrowFlight',true);equal(ns.Feedback.elapsed,nil)
+ ns.Feedback.BearingRequested(sample(1,0));ns.Feedback.Update(0.4);ns.Feedback.Update(0.4);ns.Feedback.Update(0.2)
+ equal(ns.Feedback.elapsed,nil);equal(ns.Bearing.frame.arrow.alpha,1);equal(ns.Hints.active,active)
+end)
+test('stalls and unavailable animation geometry or artwork restore the bearing without replaying feedback',function()
+ for _,case in ipairs({'stall','geometry','malformed','atlas','rotation'}) do
+  local ns,s,env=fixture();ns.Feedback.BearingRequested(sample(1,0));local active=ns.Hints.active
+  ns.Feedback.Update(0.4)
+  if case=='geometry' then env.Minimap.GetRect=function() error('restricted geometry') end
+  elseif case=='malformed' then env.Minimap.rect={0,0,0/0,160}
+  elseif case=='atlas' then
+   ns.Feedback.Hide();ns.Feedback.frame.flight=nil;s.atlasError=true;ns.Feedback.BearingRequested(sample(1,0))
+  elseif case=='rotation' then ns.Feedback.frame.flight.SetRotation=function() error('restricted texture') end end
+  ns.Feedback.Update(case=='stall' and 2 or 0.1)
+  equal(ns.Feedback.elapsed,nil);equal(ns.Feedback.frame:IsShown(),false);equal(ns.Bearing.frame.arrow.alpha,1)
+  equal(ns.Hints.active,active);equal(ns.Bearing.frame:IsVisible(),true)
+  if case~='stall' then assert(ns.DB.lastCheck.feedbackError) end
+  env.Minimap.rect={100,100,160,160};ns.Feedback.Update(0.1);equal(ns.Feedback.frame:IsShown(),false)
+  equal(s.requests,0)
  end
 end)
 test('native default observes controls without opening quests or altering native functions and layout',function()
@@ -266,8 +349,8 @@ test('restricted getters and partial construction fail without opening native de
 end)
 test('native button dispatch runs the actual Hint service only on click',function()
  local ns,s,env=fixture();readDetails(ns,s,env,42)
- ns.Bearing.Hide=function() ns.Bearing.frame:Hide();ns.Feedback.Hide() end
- ns.Bearing.Show=function() ns.Bearing.frame:Show();return true end
+ env.C_Texture={GetAtlasInfo=function() return {width=32,height=48} end}
+ load(ns,env,'MinimapBearing')
  ns.Area={Clear=function() end}
  load(ns,env,'HintController')
  ns.HintData={Facing=function() return 0 end,
@@ -275,12 +358,19 @@ test('native button dispatch runs the actual Hint service only on click',functio
    return {stage='stage-one',mapID=2521,target={x=0,y=0,space=0},player={x=-500,y=0,space=0},
     distance=500,destination={source='fixture-native-point'}}
   end}
- load(ns,env,'Hints');equal(ns.Hints.active,nil)
+ load(ns,env,'Hints');local hintTicker=s.lastFrame;equal(ns.Hints.active,nil)
  assert(ns.NativePane.ShowButton());ns.NativePane.RefreshButton();equal(ns.Hints.active,nil)
  ns.NativePane.button.scripts.OnClick();equal(ns.Hints.active.id,42);equal(ns.Hints.controller.mode,'bearing')
  equal(env.WorldMapFrame:IsShown(),false);equal(s.closes,1);equal(s.mapID,2521)
  equal(ns.NativePane.active,nil);equal(ns.NativePane.button:IsShown(),false)
  ns.NativePane.RefreshButton();equal(s.closes,1);equal(ns.Hints.active.id,42)
+ equal(ns.Feedback.flying,true);equal(ns.Bearing.frame.arrow.alpha,0)
+ hintTicker.scripts.OnUpdate(nil,0.01);equal(ns.Bearing.frame.arrow.alpha,0)
+ for _,dt in ipairs({0.4,0.4,0.2}) do ns.Feedback.Update(dt) end
+ equal(ns.Feedback.flying,nil);equal(ns.Bearing.frame.arrow.alpha,1)
+ hintTicker.scripts.OnUpdate(nil,0.01);equal(ns.Bearing.frame.arrow.alpha,1)
+ ns.Hints.Clear('cleared');equal(ns.Feedback.elapsed,nil);equal(ns.Feedback.frame:IsShown(),false)
+ equal(ns.Bearing.frame:IsShown(),false)
 end)
 test('delayed native hint completion closes only the original quest context and never retries failures',function()
  for _,case in ipairs({'same','quest-changed','map-changed','combat','restricted'}) do

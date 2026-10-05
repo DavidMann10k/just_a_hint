@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Make requested directions visible with an optional arrow flight from screen center to the minimap: a brief reveal, curved trail, shrinking arrow and gold landing ripples.
+- Follow live minimap position, scale and rotation, and clean up interrupted animations without replaying feedback or leaving the bearing hidden.
+- Add an independent arrow-flight setting; preserve chat, sound and pulse controls. The tester confirms the animation works; broader animation and settings-layout checks remain pending.
+
 ## 0.7.0 — region-aware preview
 
 - Query requested native quest regions invisibly with bounded sampling and local refinement. Show Loading hint… while preparing assistance.

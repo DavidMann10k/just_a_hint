@@ -73,8 +73,10 @@ local function bearingFixture()
         GetHeight=function() return 160 end,GetFrameLevel=function() return 1 end}
     local texture={
         SetAtlas=function(_,atlas) s.atlas=atlas end,
+        SetVertexColor=function() end,
         SetSize=function(_,w,h) s.width=w;s.height=h end,
         SetRotation=function(_,angle) if s.renderError then error("texture unavailable") end;s.rotation=angle end,
+        SetAlpha=function(_,alpha) s.alpha=alpha end,
         ClearAllPoints=function() end,SetPoint=function(_,_,_,_,x,y) s.x=x;s.y=y end,
     }
     env.CreateFrame=function()

@@ -9,7 +9,7 @@ function NS.Initialize()
     NS.DB.recovery = NS.DB.recovery or { minimap = {} }
     NS.DB.recovery.minimap = NS.DB.recovery.minimap or {}
     if type(NS.DB.presentation) ~= "table" then NS.DB.presentation = {} end
-    for _, key in ipairs({ "arrowPulse", "minimapPulse", "sound", "text" }) do
+    for _, key in ipairs({ "arrowFlight", "arrowPulse", "minimapPulse", "sound", "text" }) do
         if type(NS.DB.presentation[key]) ~= "boolean" then NS.DB.presentation[key] = true end
     end
     NS.DB.presentation.standalone = nil -- Retired reader-mode preference.

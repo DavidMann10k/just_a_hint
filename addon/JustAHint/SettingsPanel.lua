@@ -2,6 +2,7 @@ local _, NS = ...
 local Panel = {}
 NS.SettingsPanel = Panel
 local options = {
+    { "arrowFlight", "Fly the requested arrow to the minimap" },
     { "arrowPulse", "Pulse around the requested arrow" },
     { "minimapPulse", "Pulse around the minimap" },
     { "sound", "Play a soft sound when requesting direction" },
@@ -13,7 +14,7 @@ function Panel.Set(key, value)
     for _, entry in ipairs(options) do if entry[1] == key then known = true end end
     if not known or type(value) ~= "boolean" then return end
     NS.DB.presentation[key] = value
-    if NS.Feedback and not NS.DB.presentation.arrowPulse and not NS.DB.presentation.minimapPulse then NS.Feedback.Hide() end
+    if NS.Feedback then NS.Feedback.Update(0) end
 end
 function Panel.UpdateState()
     if not Panel.frame then return end
@@ -28,8 +29,8 @@ function Panel.Open()
         local frame = CreateFrame("Frame", "JustAHintSettings", UIParent, "BackdropTemplate")
         Panel.frame = frame
         frame:Hide()
-        frame:SetSize(470, 350)
-        frame:SetScale(math.min(1, (UIParent:GetHeight() - 60) / 350, (UIParent:GetWidth() - 40) / 470))
+        frame:SetSize(470, 390)
+        frame:SetScale(math.min(1, (UIParent:GetHeight() - 60) / 390, (UIParent:GetWidth() - 40) / 470))
         frame:SetPoint("CENTER")
         frame:SetFrameStrata("DIALOG")
         frame:EnableMouse(true)

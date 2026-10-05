@@ -18,6 +18,8 @@ Test the installed version on the exact client build. Record Pass / Fail / Not a
 - Point-only quests still use native point direction and nearby marker behavior; completed turn-in requests skip objective-region sampling.
 
 - Hint far away closes the map and renders one arrow without a destination pin, route or countdown.
+- With arrow flight enabled, the arrow grows at screen center, sweeps to its minimap-rim position with a short trail, then produces the enabled landing pulses. No duplicate stationary arrow remains during flight. Try different UI/minimap scales and positions, and turn during flight to check the handoff.
+- Clear, replace, zone, restore or lose valid data during flight: the overlay ends and cannot replay. Hide the minimap during flight and show it again: no stranded center arrow or new feedback remains. A long frame stall ends the animation with the ordinary bearing restored if still valid.
 - Rotate with fixed and rotating minimaps: bearing is correct and smooth. Chat direction is useful for the quest.
 - Arrival removes the arrow, reveals nothing else and stays off when walking away. A fresh far-away request can show it again.
 - Read B while A's arrow is active: preserve A. Hint for B replaces A; unavailable B clears A without acquiring help later.
@@ -38,14 +40,14 @@ Test the installed version on the exact client build. Record Pass / Fail / Not a
 
 ## Settings and activation toggle
 
-- `/jah` and `/jah settings` open the same Settings dialog with four feedback checkboxes, no quest list, tabs or reader-mode option.
+- `/jah` and `/jah settings` open the same Settings dialog with five feedback checkboxes, no quest list, tabs or reader-mode option. Check label fit and the activation control at smaller UI scales.
 - Start Just a Hint becomes Restore Blizzard guidance after success. Restore clears the hint and returns saved guidance settings. Combat disables the control; a failed restoration offers Retry restoration.
 - Reload resumes active/inactive settings but never a hint. Original guidance recovery and other characters' minimap snapshots survive.
 - A status report opens without opening Settings or a quest reader. Closing Settings never closes or selects a quest in Blizzard's UI.
 
 ## Presentation and coverage
 
-- Independently disable chat, sound and each pulse. Preferences survive reload; explicit enabled bearing feedback is perceptible.
+- Independently disable arrow flight, chat, sound and each pulse. Disabling flight keeps the immediate minimap arrow and any enabled pulses. Disabling flight mid-animation restores the minimap arrow immediately. Preferences survive reload; explicit enabled bearing feedback is perceptible.
 - Nearby area/point feedback is chat only; no map caption, sound or pulse. Arrival/read/clear never starts feedback.
 - Check combat, tracker quest items, caves, instances, transport steps and multiple-objective quests as available. Missing support is different from a wrong destination or error.
 - Run `/jah restore` on each activated character before disabling/uninstalling; verify ordinary Blizzard guidance returns.

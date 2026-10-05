@@ -7,7 +7,7 @@ Just a Hint adds optional quest assistance to the existing Map & Quest Log in th
 [Source and contributions](https://github.com/DavidMann10k/just_a_hint) · [Report a bug or playtest result](https://github.com/DavidMann10k/just_a_hint/issues)
 
 - **Another zone:** Hint is omitted until a usable destination exists on your current map.
-- **Far away:** Hint checks available regions, then closes the map and shows a minimap arrow toward the nearest confirmed location, with optional chat, sound and pulses.
+- **Far away:** Hint checks available regions, then closes the map and flies an arrow from screen center to the minimap toward the nearest confirmed location, with a short trail and landing pulses. Animation, chat, sound and pulses are optional.
 - **Arrive near any confirmed site:** the arrow disappears. Nothing replaces it, and walking away does not restart it.
 - **Nearby:** Hint opens the map with the quest's game-supplied search area. If a region cannot be confirmed, it uses a built-in pin at the native quest coordinate instead.
 - **Clear Hint:** the same button removes visible assistance. Closing the map clears an area or pin.
@@ -21,7 +21,7 @@ The current **0.7.0 preview** targets **Forever 1.60.1 / build 70009 / interface
 
 Install the addon ZIP using [these instructions](docs/INSTALL.md), restart the client, and run `/jah start` out of combat. Click a quest in the right-hand tracker to open its normal details. **Hint** appears below the standard buttons when a usable native destination exists; it is disabled while data loads.
 
-`/jah` opens Settings for chat, sound and arrow/minimap pulses. Read quests through Blizzard's normal Map & Quest Log. `/jah status` provides a copyable troubleshooting report. There is no separate addon quest reader or reader-mode setting.
+`/jah` opens Settings for the arrow flight, chat, sound and arrow/minimap pulses. Read quests through Blizzard's normal Map & Quest Log. `/jah status` provides a copyable troubleshooting report. There is no separate addon quest reader or reader-mode setting.
 
 Settings uses one **Start Just a Hint / Restore Blizzard guidance** control, with **Retry restoration** if cleanup fails. It is disabled in combat.
 
