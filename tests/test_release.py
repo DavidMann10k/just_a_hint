@@ -32,12 +32,12 @@ class ReleaseTests(unittest.TestCase):
         self.value = dict(schema=1, addon='JustAHint', version=self.version,
                           interface=self.interface, status='preview', nativeValidation='partial')
         self.write_profile()
-        (self.profile_path.parent / f'JustAHint-{self.version}.md').write_text('Preview notes\n')
-        (self.root / 'docs/INSTALL.md').write_text('Player instructions\n')
+        (self.profile_path.parent / f'JustAHint-{self.version}.md').write_text('Preview notes\n', newline='\r\n')
+        (self.root / 'docs/INSTALL.md').write_text('Player instructions\n', newline='\r\n')
         (self.root / 'README.md').write_text('Public project\n')
         (self.root / 'dev.py').write_text('# public workflow fixture\n')
         (self.root / 'scripts').mkdir()
-        (self.root / 'scripts/example.py').write_text('# public source\n')
+        (self.root / 'scripts/example.py').write_text('# public source\n', newline='\r\n')
 
     def write_profile(self):
         self.profile_path.write_text(json.dumps(self.value) + '\n')
@@ -97,7 +97,7 @@ class ReleaseTests(unittest.TestCase):
         for directory in ('addon', 'scripts', 'docs'):
             for path in (self.root / directory).rglob('*'):
                 if path.is_file():
-                    path.write_bytes(path.read_bytes().replace(b'\n', b'\r\n'))
+                    path.write_bytes(path.read_bytes().replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
                     os.utime(path, (1000000, 2000000))
         self.assertEqual(destination, self.prepare())
         self.assertEqual(before, {path.name: path.read_bytes() for path in destination.iterdir()})

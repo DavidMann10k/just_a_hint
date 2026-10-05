@@ -16,6 +16,8 @@ On 2026-10-05 the tester confirmed **“animation is good.”** This is a positi
 
 Automated validation covers tooling, Lua 5.1 behavior, animation trajectory and handoff, moved/scaled minimaps, independent settings, cancellation and renderer failures. Fixtures do not execute Blizzard's renderer or prove secure-action compatibility.
 
+Portable packaging tests explicitly simulate Linux client discovery and verify normalized outputs from CRLF fixture inputs on every development platform.
+
 Remaining native checks include animation interruption and unusual scales/positions; region loading and nearest-site usefulness; arrival at alternative sites and fresh-session availability; tracker/list ownership markers and quest items; combat, zoning and broader maps; turn-in usefulness; and final settings, reload and restoration regressions. Region samples remain approximate and can miss small/loading regions; a point fallback does not prove that a region is absent.
 
 ## Install or update

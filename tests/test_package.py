@@ -49,6 +49,8 @@ class PackageTests(unittest.TestCase):
             root = Path(directory)
             shutil.copytree(REPO / "addon", root / "addon")
             shutil.copyfile(REPO / "LICENSE", root / "LICENSE")
+            license_path = root / "LICENSE"
+            license_path.write_bytes(license_path.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
             with patch.object(PACKAGE, "ROOT", root), patch.object(
                 sys, "argv", ["package.py", "--interface", "999999"]
             ), redirect_stdout(io.StringIO()):
@@ -63,11 +65,12 @@ class PackageTests(unittest.TestCase):
                 self.assertEqual(set(archive.namelist()), {toc_name, "JustAHintDiagnostics/LICENSE"} | {
                     "JustAHintDiagnostics/" + name for name in names
                 })
-                self.assertEqual(archive.read("JustAHintDiagnostics/LICENSE"), (REPO / "LICENSE").read_bytes())
+                self.assertEqual(archive.read("JustAHintDiagnostics/LICENSE"),
+                                 (REPO / "LICENSE").read_text(encoding="utf-8").encode("utf-8"))
                 for name in names:
                     self.assertEqual(
                         archive.read("JustAHintDiagnostics/" + name),
-                        (REPO / "addon/JustAHintDiagnostics" / name).read_bytes(),
+                        (REPO / "addon/JustAHintDiagnostics" / name).read_text(encoding="utf-8").encode("utf-8"),
                     )
                     self.assertEqual(
                         (root / "dist/JustAHintDiagnostics" / name).read_bytes(),
@@ -103,7 +106,9 @@ class PackageTests(unittest.TestCase):
             user_home = Path(directory)
             parent = user_home / "Games/battlenet/drive_c/Program Files (x86)"
             client = self.client_fixture(parent)
-            with patch.object(PACKAGE.Path, "home", return_value=user_home):
+            with patch.object(PACKAGE.Path, "home", return_value=user_home), \
+                 patch.object(PACKAGE.sys, "platform", "linux"), \
+                 patch.dict(PACKAGE.os.environ, {}, clear=True):
                 result = PACKAGE.discover_client()
             self.assertEqual(result["clientDirectory"], str(client))
 
