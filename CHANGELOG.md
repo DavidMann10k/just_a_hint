@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.4 — visible quest list
+
+- Keep Blizzard's quest list and objective counts visible on the right. Native quest clicks open the Map & Quest Log; quest-item controls remain available.
+- Remove whole-tracker hiding. The existing questPOI setting suppresses native guidance buttons while map, minimap and automatic navigation stay disabled.
+- Preserve native frame ownership, layout and collapse state. Restore returns saved guidance settings.
+- Updating an existing installation requires `/reload`.
+
 ## 0.7.3 — smaller location pins
 
 - Halve nearby location pins from 24 to 12 screen units, preserving their map coordinates and scale compensation.

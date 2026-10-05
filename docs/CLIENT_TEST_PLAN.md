@@ -5,7 +5,7 @@ Test the installed version on the exact client build. Record Pass / Fail / Not a
 ## Reading and native integration
 
 - Accept, read and hover quests with Just a Hint active: no quest markers, areas or arrows appear before Hint.
-- Read and switch quests through the Map & Quest Log with the default tracker hidden: no blocked-action popup. Standard rewards, Abandon/Share/Track and native quest-item controls remain usable. Restore, then verify tracker clicks and quest-item buttons.
+- Keep the quest list and objective counts visible on the right, with native guidance buttons absent. Click quest titles repeatedly: the Map & Quest Log opens without a hint, arrow or blocked-action popup. Standard rewards, Abandon/Share/Track, modifiers, right clicks, auto-completion and native quest-item controls remain usable.
 - For a quest on another map, Hint is omitted. Entering the zone starts nothing; usable local data can make Hint available.
 - There is no standalone reader or fallback. Missing native controls report unavailability without replacing tracker handlers.
 
@@ -40,10 +40,10 @@ Test the installed version on the exact client build. Record Pass / Fail / Not a
 
 ## Settings and activation toggle
 
-- Fresh installation activates on login without `/jah start`, hides the default tracker and suppresses automatic guidance. Native map modules load without opening the map or selecting a quest. Late module loading and login during combat resume when ready.
-- Native tracker refresh, zoning, edit mode and combat cannot redisplay the hidden tracker. Restore returns its original placement and current content visibility.
+- Fresh installation activates on login without `/jah start`, keeps the quest list visible and suppresses automatic guidance. Native map modules load without opening the map or selecting a quest. Late module loading and login during combat resume when ready.
+- Native tracker refresh, new quests, count progress, zoning, edit mode and combat retain the quest list without restoring guidance buttons. User collapse state, native placement and other UI addons remain intact. Restore returns the original guidance-button setting.
 - `/jah` and `/jah settings` open the same Settings dialog with five feedback checkboxes, no quest list, tabs or reader-mode option. Check label fit and the activation control at smaller UI scales.
-- Restore clears the hint, returns the tracker and saved guidance settings, and persists the opt-out across reloads. Start Just a Hint re-enables it. Combat disables the control; a failed restoration offers Retry restoration.
+- Restore clears the hint, returns saved guidance settings and persists the opt-out across reloads. Start Just a Hint re-enables it. Combat disables the control; a failed restoration offers Retry restoration.
 - Reload resumes active/inactive settings but never a hint. Original guidance recovery and other characters' minimap snapshots survive.
 - A status report opens without opening Settings or a quest reader. Closing Settings never closes or selects a quest in Blizzard's UI.
 
@@ -60,4 +60,4 @@ Use the separate [diagnostic addon](DIAGNOSTICS.md) only for explicit developmen
 
 ## Native hint markers
 
-Request A, then inspect Blizzard's quest list: a gold arrow marks A when its guidance is visible. Read B without requesting a hint: A retains it. Request B: ownership moves to B if assistance renders, or clears if unavailable. Clear, arrive, restore or reload: no stale marker remains. Scroll native rows off-screen, change quests/stages and reopen the map: markers must not remain on hidden or recycled rows. The hidden tracker must not expose hint overlays. Check text spacing and existing native icons. `/jah status` records marker count/errors.
+Request A, then inspect Blizzard's quest list: a gold arrow marks A when its guidance is visible. Read B without requesting a hint: A retains it. Request B: ownership moves to B if assistance renders, or clears if unavailable. Clear, arrive, restore or reload: no stale marker remains. Scroll native rows off-screen, collapse the tracker, change quests/stages and reopen the map: markers must not remain on hidden or recycled rows. Check text spacing and existing native icons. `/jah status` records marker count/errors.

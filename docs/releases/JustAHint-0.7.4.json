@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "addon": "JustAHint",
+  "version": "0.7.4",
+  "interface": 16001,
+  "status": "preview",
+  "nativeValidation": "partial",
+  "observedClient": {
+    "name": "Forever beta",
+    "version": "1.60.1",
+    "build": "70205"
+  },
+  "clientEvidence": "Target derived from local client installation metadata.",
+  "pending": [
+    "Quest-list visibility and native guidance-button suppression after reload",
+    "Repeated native quest clicks without guidance or restricted-action warnings",
+    "Quest-item controls, combat, collapse state and other UI addons",
+    "Fresh-install activation and saved opt-out behavior",
+    "Restore and recovery after partial failure",
+    "Hint lifecycle, animation, region loading and broader map coverage"
+  ]
+}

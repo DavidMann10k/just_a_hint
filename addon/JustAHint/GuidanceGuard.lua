@@ -5,7 +5,7 @@ NS.Guard = Guard
 function Guard.PendingRestoration()
     local recovery = NS.DB.recovery
     local key = NS.Adapter.PlayerKey()
-    return (NS.NativeTracker and NS.NativeTracker.saved ~= nil) or recovery.questPOI ~= nil or (key and recovery.minimap[key] ~= nil)
+    return recovery.questPOI ~= nil or (key and recovery.minimap[key] ~= nil)
         or (not key and next(recovery.minimap) ~= nil) or false
 end
 
@@ -63,8 +63,6 @@ function Guard.Enforce()
         if not filtered then error(filterError) end
         local cleared, clearError = NS.Adapter.ClearQuestNavigation()
         if not cleared then error(clearError) end
-        local hidden, hideError = NS.NativeTracker.Apply()
-        if not hidden then error(hideError) end
     end)
     Guard.busy = false
     Guard.problem = not ok and tostring(err) or nil
@@ -134,8 +132,6 @@ function Guard.Restore()
     if NS.NativePane then NS.NativePane.Restore() end
     NS.DB.enabled = false
     local recovery, errors = NS.DB.recovery, {}
-    local trackerOK, trackerError = NS.NativeTracker.Restore()
-    if not trackerOK then errors[#errors + 1] = trackerError end
     if recovery.questPOI ~= nil then
         local ok, err = NS.Adapter.SetQuestPOI(recovery.questPOI)
         if ok then recovery.questPOI = nil else errors[#errors + 1] = err end

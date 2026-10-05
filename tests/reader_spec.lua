@@ -19,6 +19,7 @@ local function fixture(saved)
             state.writes[#state.writes + 1] = "map:" .. value
             if state.refuseMap then return false end
             state.map = value
+            state.refreshTracker()
             if state.hook then state.hook() end
             return true
         end,
@@ -80,7 +81,7 @@ local function fixture(saved)
         function frame:SetParent(value)
             if self == env.ObjectiveTrackerFrame then
                 assert(not state.combat, "Native tracker parenting during combat")
-                if state.refuseTracker then return end
+                state.trackerParentWrites = (state.trackerParentWrites or 0) + 1
             end
             self.parent = value
         end
@@ -96,6 +97,26 @@ local function fixture(saved)
     end
     env.UIParent = env.CreateFrame("Frame")
     env.ObjectiveTrackerFrame = env.CreateFrame("Frame", nil, env.UIParent)
+    -- Native layout responds to questPOI: text and items remain, POI buttons
+    -- are omitted. This fixture is not a claim about Forever rendering.
+    state.blocks = {}
+    state.refreshTracker = function()
+        for _, block in pairs(state.blocks) do
+            if state.map == "0" then block.poiButton:Hide() else block.poiButton:Show() end
+        end
+    end
+    state.addQuestBlock = function(id)
+        local block = env.CreateFrame("Frame", nil, env.ObjectiveTrackerFrame)
+        block.id = id
+        block.title = "Original quest title"
+        block.objective = "3/8 Creatures slain"
+        block.poiButton = env.CreateFrame("Button", nil, block)
+        block.ItemButton = env.CreateFrame("Button", nil, block)
+        state.blocks[id] = block
+        state.refreshTracker()
+        return block
+    end
+    state.addQuestBlock(123)
     env.SlashCmdList = {}
     local function load(name)
         local chunk = assert(loadfile("addon/JustAHint/" .. name .. ".lua"))
@@ -124,13 +145,15 @@ test("explicit start scopes controls to quest guidance", function()
     equal(ns.DB.recovery.questPOI,"1"); equal(ns.DB.recovery.minimap[s.key],true)
 end)
 
-test("native quest handlers remain intact while the tracker is hidden", function()
+test("visible tracker retains native quest handlers and item actions", function()
     local ns, s, env = fixture()
     local item = env.QuestObjectiveTracker.ItemButton
     local uses = 0
     local useItem = function(self) equal(self,item); uses = uses + 1 end
     item.OnClick = useItem
     assert(ns.Guard.Start()); s.combat = true
+    equal(env.ObjectiveTrackerFrame:IsVisible(),true)
+    equal(s.blocks[123].ItemButton:IsVisible(),true)
     for _,key in ipairs({"IsShiftKeyDown", "IsControlKeyDown", "IsAltKeyDown"}) do
         env[key] = function() return true end
         env.QuestObjectiveTracker:OnBlockHeaderClick({id=123}, "LeftButton")
@@ -144,6 +167,23 @@ test("native quest handlers remain intact while the tracker is hidden", function
     item:OnClick(); equal(uses,1)
     s.combat = false; assert(ns.Guard.Restore())
     equal(item.OnClick,useItem); item:OnClick(); equal(uses,2)
+end)
+test("clicking a quest opens native details without requesting guidance", function()
+    local ns, s, env = fixture()
+    local nativeClick = function(_, block, mouseButton)
+        equal(mouseButton,"LeftButton")
+        s.originalClicks = s.originalClicks + 1
+        s.opened = block.id
+        -- Native focus may attempt navigation; enforcement clears it.
+        s.navigation = block.id
+        s.hook()
+    end
+    env.QuestObjectiveTracker.OnBlockHeaderClick = nativeClick
+    assert(ns.Guard.Start())
+    equal(env.QuestObjectiveTracker.OnBlockHeaderClick,nativeClick)
+    env.QuestObjectiveTracker:OnBlockHeaderClick(s.blocks[123],"LeftButton")
+    equal(s.opened,123); equal(s.originalClicks,1); equal(s.navigation,0)
+    equal(s.hints,0); equal(s.map,"0"); equal(s.blocks[123]:IsVisible(),true)
 end)
 test("combat refusal preserves recovery and active controls until restoration is retried", function()
     local ns, s = fixture(); assert(ns.Guard.Start())
@@ -273,7 +313,8 @@ test("fresh installation activates on login without a command or hint", function
     local event = entrypoint(ns,s,load)
     event("PLAYER_LOGIN")
     equal(ns.Guard.active,true); equal(s.map,"0"); equal(s.filters[1].active,false)
-    equal(env.ObjectiveTrackerFrame:IsVisible(),false); equal(s.hints,0)
+    equal(env.ObjectiveTrackerFrame:IsVisible(),true); equal(s.hints,0)
+    equal(s.blocks[123].poiButton:IsVisible(),false); equal(s.blocks[123].ItemButton:IsVisible(),true)
     equal(ns.DB.recovery.questPOI,"1"); equal(ns.DB.recovery.minimap[s.key],true)
 end)
 
@@ -297,7 +338,7 @@ test("login during combat waits until combat ends before automatic activation", 
     local event = entrypoint(ns,s,load); event("PLAYER_LOGIN")
     equal(ns.Guard.active,false); equal(#s.writes,0); equal(env.ObjectiveTrackerFrame:IsVisible(),true)
     s.combat = false; event("PLAYER_REGEN_ENABLED")
-    equal(ns.Guard.active,true); equal(env.ObjectiveTrackerFrame:IsVisible(),false)
+    equal(ns.Guard.active,true); equal(env.ObjectiveTrackerFrame:IsVisible(),true)
 end)
 
 test("load-on-demand native UI initializes without opening the map or reentering startup", function()
@@ -318,45 +359,66 @@ test("late tracker loading retries startup without changing preferences prematur
     local event = entrypoint(ns,s,load); event("PLAYER_LOGIN")
     equal(ns.DB.enabled,true); equal(ns.Guard.active,false); equal(#s.writes,0)
     env.ObjectiveTrackerFrame = tracker; event("ADDON_LOADED","Blizzard_ObjectiveTracker")
-    equal(ns.Guard.active,true); equal(tracker:IsVisible(),false)
+    equal(ns.Guard.active,true); equal(tracker:IsVisible(),true)
 end)
 
-test("native tracker redisplay remains invisible in combat without protected mutations", function()
+test("native tracker refresh and combat retain the list without guidance buttons", function()
     local ns, s, env = fixture(); assert(ns.Guard.Start())
     local tracker = env.ObjectiveTrackerFrame
-    equal(tracker:IsShown(),true); equal(tracker:IsVisible(),false)
-    equal(ns.NativeTracker.hidden.anchor,env.UIParent)
-    s.combat = true; tracker:Hide(); tracker:Show(); assert(ns.Guard.Enforce())
-    equal(tracker:IsVisible(),false); equal(tracker:GetParent(),ns.NativeTracker.hidden)
+    equal(tracker:IsShown(),true); equal(tracker:IsVisible(),true)
+    equal(s.blocks[123].poiButton:IsVisible(),false)
+    s.combat = true; tracker:Hide(); tracker:Show(); s.refreshTracker(); assert(ns.Guard.Enforce())
+    equal(tracker:IsVisible(),true); equal(tracker:GetParent(),env.UIParent)
+    equal(s.blocks[123].poiButton:IsVisible(),false); equal(s.blocks[123].ItemButton:IsVisible(),true)
+    equal(s.trackerParentWrites,nil)
     s.combat = false; assert(ns.Guard.Restore())
     equal(tracker:GetParent(),env.UIParent); equal(tracker:IsVisible(),true)
+    equal(s.blocks[123].poiButton:IsVisible(),true)
 end)
 
-test("restoration preserves native tracker content visibility and addon parenting", function()
+test("activation and restoration preserve native collapse and addon parenting", function()
     local ns, s, env = fixture(); local tracker = env.ObjectiveTrackerFrame
     tracker:Hide(); assert(ns.Guard.Start()); assert(ns.Guard.Restore())
     equal(tracker:GetParent(),env.UIParent); equal(tracker:IsShown(),false)
     tracker:Show(); assert(ns.Guard.Start())
     local replacement = env.CreateFrame("Frame",nil,env.UIParent)
     tracker:SetParent(replacement); assert(ns.Guard.Restore())
-    equal(tracker:GetParent(),replacement); equal(ns.NativeTracker.saved,nil)
+    equal(tracker:GetParent(),replacement)
 end)
 
-test("tracker suppression failure rolls back map and minimap settings", function()
-    local ns, s, env = fixture(); s.refuseTracker = true
-    equal(ns.Guard.Start(),false); equal(ns.Guard.active,false); equal(ns.DB.enabled,false)
-    equal(s.map,"1"); equal(s.filters[1].active,true); equal(env.ObjectiveTrackerFrame:GetParent(),env.UIParent)
-    equal(ns.NativeTracker.saved,nil); equal(ns.DB.recovery.questPOI,nil)
+test("quest list content and new rows remain visible with native POI controls off", function()
+    local ns, s, env = fixture(); assert(ns.Guard.Start())
+    local first = s.blocks[123]
+    equal(first:IsVisible(),true); equal(first.title,"Original quest title")
+    equal(first.objective,"3/8 Creatures slain"); equal(first.poiButton:IsVisible(),false)
+    first.objective = "4/8 Creatures slain"
+    local second = s.addQuestBlock(456)
+    assert(ns.Guard.Enforce())
+    equal(first.objective,"4/8 Creatures slain"); equal(second:IsVisible(),true)
+    equal(second.poiButton:IsVisible(),false); equal(second.ItemButton:IsVisible(),true)
+    equal(env.ObjectiveTrackerFrame:GetParent(),env.UIParent); equal(s.trackerParentWrites,nil)
+    assert(ns.Guard.Restore()); equal(first.poiButton:IsVisible(),true); equal(second.poiButton:IsVisible(),true)
 end)
 
-test("tracker restoration failure retains its parent snapshot and offers retry", function()
-    local ns, s, env = fixture(); assert(ns.Guard.Start()); s.refuseTracker = true
-    equal(ns.Guard.Restore(),false); equal(ns.DB.enabled,false); equal(ns.Guard.Action(),"retry")
-    equal(env.ObjectiveTrackerFrame:GetParent(),ns.NativeTracker.hidden)
-    equal(s.map,"1"); equal(s.filters[1].active,true)
-    s.refuseTracker = false; assert(ns.Guard.Toggle())
-    equal(ns.NativeTracker.saved,nil); equal(env.ObjectiveTrackerFrame:GetParent(),env.UIParent)
-    equal(ns.Guard.Action(),"start")
+test("tracker support requires read access without visibility or parenting writes", function()
+    local ns, s, env = fixture()
+    local tracker = env.ObjectiveTrackerFrame
+    local function forbidden() error("Addon must not change native tracker frames") end
+    tracker.Show = forbidden; tracker.Hide = forbidden; tracker.SetParent = forbidden
+    assert(ns.Guard.Start()); equal(ns.NativeTracker.Visible(),true)
+    s.combat = true; assert(ns.Guard.Enforce()); equal(ns.NativeTracker.Visible(),true)
+    s.combat = false; assert(ns.Guard.Restore()); equal(ns.NativeTracker.Visible(),true)
+    env.ObjectiveTrackerFrame = nil; equal(ns.NativeTracker.Visible(),nil)
+end)
+
+test("reload of an existing enabled installation returns the list and retains recovery", function()
+    local ns, s, env, load = fixture({enabled=true,recovery={questPOI="1",minimap={["character-a"]=true}}})
+    s.map = "0"; s.filters[1].active = false; s.refreshTracker()
+    entrypoint(ns,s,load)("PLAYER_LOGIN")
+    equal(ns.Guard.active,true); equal(env.ObjectiveTrackerFrame:IsVisible(),true)
+    equal(s.blocks[123].poiButton:IsVisible(),false); equal(s.opened,nil); equal(s.hints,0)
+    equal(ns.DB.recovery.questPOI,"1"); equal(ns.DB.recovery.minimap[s.key],true)
+    assert(ns.Guard.Restore()); equal(s.map,"1"); equal(s.blocks[123].poiButton:IsVisible(),true)
 end)
 
 -- Parse every shipped file, including the presentation and event entrypoint.

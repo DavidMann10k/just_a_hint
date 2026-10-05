@@ -13,7 +13,7 @@ Python 3.11+ builds and installs with its standard library. Full checks addition
 | `python dev.py build --interface VALUE` | Build without a game installation. |
 | `python dev.py install` | Build and install with verified staging and backups. |
 | `python dev.py deploy` | Test → build → install. |
-| `python dev.py release --version 0.7.3 --interface 16001` | Run full checks and prepare a preview bundle without installing or publishing. |
+| `python dev.py release --version 0.7.4 --interface 16001` | Run full checks and prepare a preview bundle without installing or publishing. |
 | `python dev.py evidence` | Import actual SavedVariables into ignored evidence JSON. |
 | `python dev.py rollback` | Restore the previous installation from this checkout. |
 | `python dev.py deploy --addon JustAHintDiagnostics` | Test, build, and install only the diagnostic. |

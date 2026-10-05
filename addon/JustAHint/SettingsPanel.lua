@@ -58,7 +58,7 @@ function Panel.Open()
         end
         local note = frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
         note:SetPoint("BOTTOMLEFT",24,64);note:SetWidth(420);note:SetJustifyH("LEFT")
-        note:SetText("Replaces and hides Blizzard's quest tracker by default.\nOpen the Map & Quest Log to read quests and request Hint.")
+        note:SetText("Keeps the quest list; hides automatic guidance.\nClick a quest to open the Map & Quest Log and request Hint.")
         frame.modeToggle = CreateFrame("Button",nil,frame,"UIPanelButtonTemplate")
         frame.modeToggle:SetSize(225,26);frame.modeToggle:SetPoint("BOTTOMLEFT",22,22)
         frame.modeToggle:SetScript("OnClick",function()

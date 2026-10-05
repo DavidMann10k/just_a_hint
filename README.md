@@ -6,9 +6,9 @@ Just a Hint is a restrained quest tracker that does nothing unless you ask for a
 
 That way your brain can stay engaged with, and immersed in, the game world.
 
-Just a Hint replaces Blizzard's quest tracker. It activates automatically, hides the default tracker and disables automatic navigation, map objectives and minimap quest markers. Read quests and request hints through the Map & Quest Log.
+Just a Hint activates automatically. It keeps Blizzard's quest list and objective counts on the right, hides its guidance buttons and disables automatic navigation, map objectives and minimap quest markers. Click a quest to open the Map & Quest Log; request hints there.
 
-[Download 0.7.3 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.3) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
+[Download 0.7.4 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.4) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
 
 Target: **Forever beta 1.60.1 / build 70205 / interface 16001**.
 
@@ -16,7 +16,7 @@ Extract `JustAHint.zip` into `Interface/AddOns`, enable the addon and restart th
 
 ## Using Just a Hint
 
-Open the Map & Quest Log and select a quest. **Hint** appears below the normal quest controls when a usable destination exists on your current map. Read the quest normally; assistance begins when you press the button. The button is disabled while location data loads.
+Click a quest in the list on the right, or open the Map & Quest Log and select one. **Hint** appears below the normal quest controls when a usable destination exists on your current map. Read the quest normally; assistance begins when you press the button. The button is disabled while location data loads.
 
 ![Hint beneath the standard quest controls, before a request](docs/images/jah-hint.png)
 
@@ -48,7 +48,7 @@ The cyan outlines around the button and minimap arrow are screenshot annotations
 | --- | --- |
 | `/jah` | Settings: arrow flight, pulses, sound and chat. |
 | `/jah clear` | Clear the current hint. |
-| `/jah restore` | Disable Just a Hint, show the default tracker and restore saved guidance settings. |
+| `/jah restore` | Disable Just a Hint and restore saved Blizzard guidance settings. |
 | `/jah status` | Copyable diagnostic report. |
 
 Run `/jah restore` out of combat on each activated character before disabling or removing the addon. Restoration keeps Just a Hint disabled across reloads; `/jah start` re-enables it.

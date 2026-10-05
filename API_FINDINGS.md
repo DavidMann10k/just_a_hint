@@ -575,10 +575,34 @@ After the animation update was installed, the tester reports **“animation is g
 
 Local validation passes **244 checks**: 50 Python, 69 diagnostic Lua, 19 reader/control Lua, 44 hint Lua, 12 area Lua, 38 presentation Lua and 12 region-request Lua. Fixtures cover the flight path, live heading and geometry, handoff, independent settings, interruptions and rendering failures; they do not substitute for additional native observations.
 
-### Automatic activation and tracker suppression
+### Automatic activation and tracker suppression: 0.7.2–0.7.3
 
 Fresh settings default to enabled; saved opt-outs and unfinished restoration remain disabled. Login loads native map/tracker modules without opening a quest, then applies guidance suppression. Combat and unavailable controls defer activation. Restore persists the opt-out and returns saved map/minimap settings.
 
 The native container is `ObjectiveTrackerFrame`, declared in Blizzard's [tracker XML](https://github.com/tomrus88/BlizzardInterfaceCode/blob/master/Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTracker.xml). Its [container update](https://github.com/tomrus88/BlizzardInterfaceCode/blob/master/Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerContainer.lua) calls Show when modules have content. NativeTracker therefore reparents the container beneath a hidden frame outside combat rather than relying on a one-time Hide. Native handlers, events, anchors and shown state remain intact; the hidden parent retains UIParent dimensions. Restore returns the original parent unless another addon has changed it. A failed restoration retains its session-local snapshot; reload reconstructs native frames.
 
 Behavioral fixtures cover automatic startup, saved opt-out, legacy recovery, combat deferral, reentrant load-on-demand events, late tracker loading, native redisplay, partial application failure and restoration retry. These checks do not establish Forever's protected-frame or quest-item behavior. Target-client checks remain pending in [the acceptance plan](docs/CLIENT_TEST_PLAN.md).
+
+### Visible native quest list: 0.7.4
+
+The user clarifies that the right-hand quest list should remain visible, with
+guidance buttons absent and quest clicks opening the Map & Quest Log. The whole
+tracker suppression in 0.7.2–0.7.3 is removed. NativeTracker now checks availability
+and reads visibility; it never changes native frame parents, layout or shown
+state. Existing saved activation and guidance-recovery settings remain valid.
+Reload reconstructs native frames and returns the quest list.
+
+The modern [tracker manager](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerManager.lua)
+uses questPOI for CanShowPOIs. [Quest POI blocks](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerQuestPOIBlock.lua)
+omit or release their navigation buttons when that setting is disabled. The
+existing guard therefore controls guidance buttons without hiding quest text or
+items. The [native quest tracker](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_QuestObjectiveTracker.lua)
+opens map details from ordinary quest-header clicks. These are modern source
+contracts, not an established source match for Forever build 70205. This change
+retains the Blizzard-owned click path already observed in the native reader.
+
+Fixtures cover visible content and new rows, guidance-button settings, unchanged
+native click and item handlers, combat refresh, collapse/parent ownership,
+saved-setting recovery and upgrading an enabled installation. Repeated native
+clicks, button suppression and quest-item/combat behavior still require the
+target-client checks in [the acceptance plan](docs/CLIENT_TEST_PLAN.md).
