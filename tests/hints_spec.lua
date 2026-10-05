@@ -190,7 +190,7 @@ local function serviceFixture()
     ns.Note=function(k,v) ns.DB.lastCheck[k]=v end
     ns.Message=function(m) s.message=m end
     ns.SettingsPanel={UpdateState=function() end}
-    ns.Guard={active=true,Action=function() return "restore" end}
+    ns.Guard={active=true,Action=function() return "restore" end,Resume=function() end}
     ns.Bearing={Hide=function() s.shown=false end,Show=function(x,y)
         s.bearingDraws=s.bearingDraws+1
         if s.renderError then return false,"texture unavailable" end

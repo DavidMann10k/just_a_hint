@@ -5,7 +5,7 @@ NS.Guard = Guard
 function Guard.PendingRestoration()
     local recovery = NS.DB.recovery
     local key = NS.Adapter.PlayerKey()
-    return recovery.questPOI ~= nil or (key and recovery.minimap[key] ~= nil)
+    return (NS.NativeTracker and NS.NativeTracker.saved ~= nil) or recovery.questPOI ~= nil or (key and recovery.minimap[key] ~= nil)
         or (not key and next(recovery.minimap) ~= nil) or false
 end
 
@@ -27,8 +27,19 @@ function Guard.Preflight()
         "hooksecurefunc" }) do
         if type(NS.Resolve(path)) ~= "function" then return nil, "Missing " .. path end
     end
-    local trackerOK, trackerError = NS.NativePane.Check()
-    if not trackerOK then return nil, trackerError end
+    local nativeOK = NS.NativePane.Check()
+    local trackerOK = NS.NativeTracker.Check()
+    if not nativeOK or not trackerOK then
+        local loadAddon = NS.Resolve("C_AddOns.LoadAddOn") or NS.Resolve("LoadAddOn")
+        if type(loadAddon) == "function" then
+            if not nativeOK then pcall(loadAddon, "Blizzard_WorldMap") end
+            if not trackerOK then pcall(loadAddon, "Blizzard_ObjectiveTracker") end
+        end
+    end
+    local paneOK, paneError = NS.NativePane.Check()
+    if not paneOK then return nil, paneError end
+    local available, trackerError = NS.NativeTracker.Check()
+    if not available then return nil, trackerError end
     local map, mapError = NS.Adapter.QuestPOI()
     if map == nil then return nil, mapError end
     local minimap, miniError = NS.Adapter.QuestTracking()
@@ -52,10 +63,12 @@ function Guard.Enforce()
         if not filtered then error(filterError) end
         local cleared, clearError = NS.Adapter.ClearQuestNavigation()
         if not cleared then error(clearError) end
+        local hidden, hideError = NS.NativeTracker.Apply()
+        if not hidden then error(hideError) end
     end)
     Guard.busy = false
     Guard.problem = not ok and tostring(err) or nil
-    NS.Note("guidanceControls", ok and "applied; visual verification required" or Guard.problem)
+    NS.Note("guidanceControls", ok and "applied" or Guard.problem)
     if not ok and Guard.lastWarning ~= Guard.problem then
         Guard.lastWarning = Guard.problem
         NS.Message("Guidance controls need attention: " .. Guard.problem .. " Use /jah restore to restore settings.")
@@ -99,6 +112,18 @@ function Guard.Start()
     return true
 end
 
+function Guard.Resume()
+    if Guard.resuming or Guard.active or not NS.DB.enabled then return end
+    -- A load-on-demand addon may fire ADDON_LOADED inside Preflight.
+    if NS.InCombat() or not NS.Adapter.PlayerKey() then return end
+    Guard.resuming = true
+    local ok, err = Guard.Start()
+    Guard.resuming = false
+    if not ok and Guard.resumeError ~= err then NS.Message("Startup: " .. err) end
+    Guard.resumeError = not ok and err or nil
+    return ok, err
+end
+
 function Guard.Restore()
     if NS.InCombat() then
         return false, "Leave combat, then use Restore Blizzard guidance again."
@@ -109,6 +134,8 @@ function Guard.Restore()
     if NS.NativePane then NS.NativePane.Restore() end
     NS.DB.enabled = false
     local recovery, errors = NS.DB.recovery, {}
+    local trackerOK, trackerError = NS.NativeTracker.Restore()
+    if not trackerOK then errors[#errors + 1] = trackerError end
     if recovery.questPOI ~= nil then
         local ok, err = NS.Adapter.SetQuestPOI(recovery.questPOI)
         if ok then recovery.questPOI = nil else errors[#errors + 1] = err end

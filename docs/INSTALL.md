@@ -1,31 +1,27 @@
 # Install and use Just a Hint
 
-Just a Hint is a restrained quest tracker that does nothing unless you ask for a hint. It gives you more specific hints as you get closer, but only if you ask.
-
-That way your brain can stay engaged with, and immersed in, the game world.
-
-The 0.7.1 preview targets Forever beta 1.60.1, build 70205, interface 16001. Native validation is partial: the arrow animation is tester-confirmed, while broader final-build coverage remains pending. See the bundled RELEASE_NOTES.md for known limitations. Players do not need Python or Lua installed separately.
+Target: Forever beta 1.60.1 / build 70205 / interface 16001.
 
 1. Close the game for the first installation.
 2. Extract **JustAHint.zip** into the target client's `Interface/AddOns` folder.
 3. Check that the resulting path is `Interface/AddOns/JustAHint/JustAHint.toc`, without another enclosing ZIP folder.
 4. Start the client and enable **Just a Hint** in its addon list.
-5. Enter the world and run `/jah start` out of combat.
+5. Enter the world. Just a Hint activates automatically; no command is required. Activation waits for combat to end if necessary.
 
-Click a quest in the tracker to read the normal Map & Quest Log. Hint appears beneath its standard buttons when native location data is available. If the native destination is on another map, Hint is omitted. Blizzard handles that quest’s map presentation. Entering the zone never starts assistance automatically; a usable local destination can make Hint available. From far away on your current map it closes the map and flies an arrow from screen center to its minimap bearing, followed by the enabled landing pulses. Arrival removes the arrow and stays quiet. Ask again nearby to see a native area or a pin at the native quest coordinate. A pin is a location clue; it does not guarantee an exact NPC position.
+Just a Hint replaces and hides Blizzard's quest tracker. Automatic navigation and quest markers on the map and minimap are disabled while it is active. Read quests through the Map & Quest Log.
 
-The button becomes Clear Hint while that quest has visible assistance. Reading a different quest does not clear the existing hint. Closing the map clears an area or pin; reopening it does not restore assistance. Progress counts preserve guidance; a new stage clears it. A completed quest awaiting turn-in can receive a newly requested hint if native destination data is useful.
+Open the Map & Quest Log, select a quest and press **Hint** beneath the native controls. A distant request sends an arrow to the minimap; a nearby request shows a search area or location pin. Arrival clears the arrow. More detail requires another request. Hint is available only for usable destinations on the current map and is disabled while data loads.
 
-`/jah` and `/jah settings` open Settings, with five controls for arrow flight, chat, sound and the two pulses. Disable flight to show the minimap arrow immediately; the other feedback settings remain independent. Quests are read only through Blizzard's UI. `/jah status` opens a copyable report; `/jah clear` clears requested guidance. Gold arrows mark the owner of visible guidance in Blizzard's quest list and tracker; this does not select or focus a quest.
+**Clear Hint** removes visible guidance. Closing the map clears an area or pin. Quest stage changes, zoning and reload also clear guidance.
 
-The bottom activation control starts Just a Hint when inactive and restores Blizzard guidance when active. If restoration fails, it offers Retry restoration and keeps the original recovery values; finish restoration before starting again. Combat disables the control. The control lives in Settings.
+`/jah` configures arrow flight, pulses, sound and chat. `/jah clear` clears the current hint; `/jah status` opens a diagnostic report.
 
 ## Update or remove
 
-For a manual update, close the client, back up the existing JustAHint folder, and replace that folder with the new archive's JustAHint folder. Leave other addons and the client's WTF folder alone. A full restart discovers new addon files; `/reload` is sufficient only when the runtime file list has not changed. Release notes or the development installer identify that distinction.
+Close the client and replace the existing `JustAHint` folder with the new one. Preserve the client's `WTF` folder, which stores your settings. Restart to discover new addon files; `/reload` suffices when only existing runtime files changed.
 
-Before disabling or deleting the addon, run **`/jah restore` out of combat**. It restores the guidance preferences saved at activation. A successful file rollback does not restore in-game settings. If restoration reports failure, keep the addon enabled and retry out of combat; it retains recovery values. Restore on each character where you activated the addon.
+Before disabling or deleting the addon, run **`/jah restore` out of combat** on each activated character. This restores the default tracker and saved guidance settings. If restoration fails, retry through `/jah` → **Retry restoration** before removing the addon. Restoration persists across reloads; `/jah start` re-enables Just a Hint.
 
 ## Report a problem
 
-Include the addon version, client version/build, quest name and stage, what you clicked, what appeared, and the exact error text. `/jah status` helps. Do not include account names, private paths or whole SavedVariables files in public reports. A missing location or uncertain region is different from a client error; note which happened.
+Include addon and client versions, quest name and stage, steps to reproduce and the exact error. `/jah status` provides a copyable report. Omit account names, private paths and SavedVariables files from public reports.

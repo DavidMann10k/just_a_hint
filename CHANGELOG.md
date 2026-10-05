@@ -1,10 +1,17 @@
 # Changelog
 
+## 0.7.2 — automatic activation
+
+- Activate on login by default and hide Blizzard's quest tracker. Native map and minimap guidance remain suppressed; hints require explicit requests through the Map & Quest Log.
+- Preserve the tracker across native refreshes and combat, then restore its original parent on opt-out. Saved opt-outs survive reloads; failed restoration retains recovery data.
+- Load native UI modules without opening a quest. Defer activation during combat or unavailable controls.
+- Shorten public copy and installation instructions. A new runtime file requires a client restart.
+
 ## 0.7.1 — arrow-flight preview
 
 - Make requested directions visible with an optional arrow flight from screen center to the minimap: a brief reveal, curved trail, shrinking arrow and gold landing ripples.
 - Follow live minimap position, scale and rotation, and clean up interrupted animations without replaying feedback or leaving the bearing hidden.
-- Add an independent arrow-flight setting; preserve chat, sound and pulse controls. The tester confirms the animation works; broader animation and settings-layout checks remain pending.
+- Add an independent arrow-flight setting; preserve chat, sound and pulse controls.
 - Correct portable test fixtures for Linux client discovery and normalized package/release line endings on Windows and macOS runners.
 
 ## 0.7.0 — region-aware preview

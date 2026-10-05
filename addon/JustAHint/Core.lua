@@ -1,5 +1,5 @@
 local _, NS = ...
-NS.VERSION = "0.7.1"
+NS.VERSION = "0.7.2"
 
 function NS.Initialize()
     if type(JustAHintDB) ~= "table" then JustAHintDB = {} end
@@ -8,6 +8,10 @@ function NS.Initialize()
     NS.DB.schema = 1
     NS.DB.recovery = NS.DB.recovery or { minimap = {} }
     NS.DB.recovery.minimap = NS.DB.recovery.minimap or {}
+    if type(NS.DB.enabled) ~= "boolean" then
+        -- Preserve unfinished restoration from an existing installation.
+        NS.DB.enabled = NS.DB.recovery.questPOI == nil and next(NS.DB.recovery.minimap) == nil
+    end
     if type(NS.DB.presentation) ~= "table" then NS.DB.presentation = {} end
     for _, key in ipairs({ "arrowFlight", "arrowPulse", "minimapPulse", "sound", "text" }) do
         if type(NS.DB.presentation[key]) ~= "boolean" then NS.DB.presentation[key] = true end

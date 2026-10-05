@@ -9,11 +9,11 @@ Python 3.11+ builds and installs with its standard library. Full checks addition
 | `python dev.py doctor` | Show interpreters and selected client/build evidence. |
 | `python dev.py configure` | Discover and save the client path to ignored local configuration. |
 | `python dev.py test` | Run tooling tests and Lua 5.1 behavior tests; fail if Lua is missing. |
-| `python dev.py build` | Build the reader using configured/discovered client metadata. |
+| `python dev.py build` | Build the addon using configured/discovered client metadata. |
 | `python dev.py build --interface VALUE` | Build without a game installation. |
 | `python dev.py install` | Build and install with verified staging and backups. |
 | `python dev.py deploy` | Test → build → install. |
-| `python dev.py release --version 0.7.1 --interface 16001` | Run full checks and prepare a preview bundle without installing or publishing. |
+| `python dev.py release --version 0.7.2 --interface 16001` | Run full checks and prepare a preview bundle without installing or publishing. |
 | `python dev.py evidence` | Import actual SavedVariables into ignored evidence JSON. |
 | `python dev.py rollback` | Restore the previous installation from this checkout. |
 | `python dev.py deploy --addon JustAHintDiagnostics` | Test, build, and install only the diagnostic. |

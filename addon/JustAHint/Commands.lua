@@ -1,11 +1,12 @@
 local addonName, NS = ...
 
 local function report()
-    local lines = { "Just a Hint " .. NS.VERSION .. " preview; client observations still required." }
+    local lines = { "Just a Hint " .. NS.VERSION .. " preview" }
     local ok, version, build, _, interface = NS.Call("GetBuildInfo")
     lines[#lines + 1] = "Build: " .. (ok and table.concat({tostring(version), tostring(build), tostring(interface)}, " / ") or "unavailable")
     lines[#lines + 1] = "Enabled: " .. tostring(NS.DB.enabled == true)
     lines[#lines + 1] = "Controls active: " .. tostring(NS.Guard.active)
+    lines[#lines + 1] = "Blizzard tracker suppressed: " .. tostring(NS.NativeTracker and NS.NativeTracker.saved ~= nil)
     lines[#lines + 1] = "Native pane: " .. tostring(NS.NativePane and NS.NativePane.problem or "available or not yet loaded")
     lines[#lines + 1] = "Native observer: " .. tostring(NS.NativePane and NS.NativePane.observer and NS.NativePane.observer:IsShown() or false)
     lines[#lines + 1] = "Native Hint control: " .. tostring(NS.NativePane and NS.NativePane.active ~= nil)
@@ -84,8 +85,10 @@ frame:SetScript("OnEvent", function(_, event, ...)
     end
     if event == "ADDON_LOADED" then
         if ... == addonName then NS.Initialize() end
+        if NS.DB and NS.loggedIn then NS.Guard.Resume() end
         if NS.DB and NS.Guard.active and not NS.InCombat() then
             if NS.NativePane then NS.NativePane.Install() end
+            NS.Guard.Enforce()
         end
         return
     end
@@ -97,9 +100,9 @@ frame:SetScript("OnEvent", function(_, event, ...)
     if (event == "QUEST_REMOVED" or event == "QUEST_TURNED_IN") and NS.Hints and NS.Hints.active
         and NS.Hints.active.id == ... then NS.Hints.Clear(event == "QUEST_REMOVED" and "removed" or "turned-in") end
     if event == "PLAYER_LOGIN" then
+        NS.loggedIn = true
         if NS.DB.enabled then
-            local ok, err = NS.Guard.Start()
-            if not ok then NS.Message("Just a Hint could not resume: " .. err .. " Use /jah status or /jah restore.") end
+            NS.Guard.Resume()
         else
             local ok, err = NS.Guard.Restore()
             if not ok then NS.Message(err) end
@@ -108,6 +111,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
         NS.Guard.Enforce()
         if NS.Hints then NS.Hints.Update() end
     else
+        if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_REGEN_ENABLED" then NS.Guard.Resume() end
         NS.Guard.Enforce()
         NS.SettingsPanel.UpdateState()
     end

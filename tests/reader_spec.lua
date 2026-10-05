@@ -11,7 +11,7 @@ local function fixture(saved)
     }, key = "character-a", navigation = 123, writes = {}, reads = {}, combat = false,
         originalClicks = 0, hook = nil, modified = false, hints = 0 }
     local ns = {}
-    env.JustAHintDB = saved
+    env.JustAHintDB = saved or { enabled = false }
     env.C_CVar = {
         GetCVar = function(name) equal(name, "questPOI"); return state.map end,
         SetCVar = function(name, value)
@@ -73,11 +73,35 @@ local function fixture(saved)
         OnBlockHeaderClick = function() state.originalClicks = state.originalClicks + 1 end,
         ItemButton = { untouched = true },
     }
+    state.frames = {}
+    env.CreateFrame = function(_, _, parent)
+        local frame = { parent = parent, shown = true, scripts = {}, events = {} }
+        function frame:GetParent() return self.parent end
+        function frame:SetParent(value)
+            if self == env.ObjectiveTrackerFrame then
+                assert(not state.combat, "Native tracker parenting during combat")
+                if state.refuseTracker then return end
+            end
+            self.parent = value
+        end
+        function frame:Show() self.shown = true end
+        function frame:Hide() self.shown = false end
+        function frame:IsShown() return self.shown end
+        function frame:IsVisible() return self.shown and (not self.parent or self.parent:IsVisible()) end
+        function frame:SetAllPoints(value) self.anchor = value end
+        function frame:RegisterEvent(event) self.events[event] = true end
+        function frame:SetScript(event, callback) self.scripts[event] = callback end
+        state.frames[#state.frames + 1] = frame
+        return frame
+    end
+    env.UIParent = env.CreateFrame("Frame")
+    env.ObjectiveTrackerFrame = env.CreateFrame("Frame", nil, env.UIParent)
+    env.SlashCmdList = {}
     local function load(name)
         local chunk = assert(loadfile("addon/JustAHint/" .. name .. ".lua"))
         setfenv(chunk, env); chunk("JustAHint", ns)
     end
-    load("Core"); load("ClientAdapter"); load("GuidanceGuard")
+    load("Core"); load("ClientAdapter"); load("NativeTracker"); load("GuidanceGuard")
     ns.Initialize()
     ns.NativePane = {Check=function() return true end,Install=function() return true end,Restore=function() end}
     return ns, state, env, load
@@ -100,7 +124,7 @@ test("explicit start scopes controls to quest guidance", function()
     equal(ns.DB.recovery.questPOI,"1"); equal(ns.DB.recovery.minimap[s.key],true)
 end)
 
-test("raw modifier keys and quest-item actions survive tracker integration during combat", function()
+test("native quest handlers remain intact while the tracker is hidden", function()
     local ns, s, env = fixture()
     local item = env.QuestObjectiveTracker.ItemButton
     local uses = 0
@@ -173,7 +197,7 @@ test("other characters recover their own filter when guidance is restored", func
 end)
 test("missing interfaces and combat refuse activation before mutations", function()
     local ns, s, env = fixture(); env.Enum.MinimapTrackingFilter.QuestPOIs = nil
-    equal(ns.Guard.Start(),false); equal(#s.writes,0); equal(ns.DB.enabled,nil)
+    equal(ns.Guard.Start(),false); equal(#s.writes,0); equal(ns.DB.enabled,false)
     env.Enum.MinimapTrackingFilter.QuestPOIs = 7; s.combat = true
     equal(ns.Guard.Start(),false); equal(#s.writes,0)
 end)
@@ -225,7 +249,7 @@ end)
 test("missing native controls fail before guidance settings change",function()
  local ns,s,env=fixture();local original=env.QuestObjectiveTracker.OnBlockHeaderClick
  ns.NativePane.Check=function() return false,"Native controls unavailable" end
- equal(ns.Guard.Start(),false);equal(#s.writes,0);equal(ns.DB.enabled,nil)
+ equal(ns.Guard.Start(),false);equal(#s.writes,0);equal(ns.DB.enabled,false)
  equal(env.QuestObjectiveTracker.OnBlockHeaderClick,original)
 end)
 test("native observer startup failure rolls back guidance without installing tracker wrappers",function()
@@ -235,8 +259,108 @@ test("native observer startup failure rolls back guidance without installing tra
  equal(ns.Guard.active,false);equal(ns.DB.enabled,false);equal(s.map,"1");equal(s.filters[1].active,true)
  equal(ns.DB.recovery.questPOI,nil);equal(env.QuestObjectiveTracker.OnBlockHeaderClick,original)
 end)
+
+local function entrypoint(ns, state, load)
+    ns.SettingsPanel = { UpdateState = function() end, Open = function() end }
+    load("Commands")
+    local frame = state.frames[#state.frames]
+    return function(event, ...) return frame.scripts.OnEvent(frame, event, ...) end
+end
+
+test("fresh installation activates on login without a command or hint", function()
+    local ns, s, env, load = fixture({})
+    equal(ns.DB.enabled,true); equal(#s.writes,0)
+    local event = entrypoint(ns,s,load)
+    event("PLAYER_LOGIN")
+    equal(ns.Guard.active,true); equal(s.map,"0"); equal(s.filters[1].active,false)
+    equal(env.ObjectiveTrackerFrame:IsVisible(),false); equal(s.hints,0)
+    equal(ns.DB.recovery.questPOI,"1"); equal(ns.DB.recovery.minimap[s.key],true)
+end)
+
+test("saved opt-out remains disabled across login and reload", function()
+    local ns, s, env, load = fixture({enabled=false})
+    entrypoint(ns,s,load)("PLAYER_LOGIN")
+    equal(ns.Guard.active,false); equal(ns.DB.enabled,false); equal(#s.writes,0)
+    equal(env.ObjectiveTrackerFrame:IsVisible(),true)
+    local nextNS, nextState, _, nextLoad = fixture(ns.DB)
+    entrypoint(nextNS,nextState,nextLoad)("PLAYER_LOGIN")
+    equal(nextNS.Guard.active,false); equal(#nextState.writes,0)
+end)
+
+test("legacy recovery without activation preference does not enable the addon", function()
+    local ns = fixture({recovery={questPOI="1",minimap={}}})
+    equal(ns.DB.enabled,false); equal(ns.Guard.Action(),"retry")
+end)
+
+test("login during combat waits until combat ends before automatic activation", function()
+    local ns, s, env, load = fixture({}); s.combat = true
+    local event = entrypoint(ns,s,load); event("PLAYER_LOGIN")
+    equal(ns.Guard.active,false); equal(#s.writes,0); equal(env.ObjectiveTrackerFrame:IsVisible(),true)
+    s.combat = false; event("PLAYER_REGEN_ENABLED")
+    equal(ns.Guard.active,true); equal(env.ObjectiveTrackerFrame:IsVisible(),false)
+end)
+
+test("load-on-demand native UI initializes without opening the map or reentering startup", function()
+    local ns, s, env, load = fixture({})
+    local event = entrypoint(ns,s,load)
+    ns.NativePane.Check = function() return s.nativeReady == true,"Native controls unavailable" end
+    env.C_AddOns = {LoadAddOn=function(name)
+        equal(name,"Blizzard_WorldMap"); s.nativeLoads = (s.nativeLoads or 0) + 1
+        s.nativeReady = true; event("ADDON_LOADED",name)
+    end}
+    event("PLAYER_LOGIN")
+    equal(s.nativeLoads,1); equal(ns.Guard.active,true); equal(s.hints,0); equal(s.opened,nil)
+end)
+
+test("late tracker loading retries startup without changing preferences prematurely", function()
+    local ns, s, env, load = fixture({})
+    local tracker = env.ObjectiveTrackerFrame; env.ObjectiveTrackerFrame = nil
+    local event = entrypoint(ns,s,load); event("PLAYER_LOGIN")
+    equal(ns.DB.enabled,true); equal(ns.Guard.active,false); equal(#s.writes,0)
+    env.ObjectiveTrackerFrame = tracker; event("ADDON_LOADED","Blizzard_ObjectiveTracker")
+    equal(ns.Guard.active,true); equal(tracker:IsVisible(),false)
+end)
+
+test("native tracker redisplay remains invisible in combat without protected mutations", function()
+    local ns, s, env = fixture(); assert(ns.Guard.Start())
+    local tracker = env.ObjectiveTrackerFrame
+    equal(tracker:IsShown(),true); equal(tracker:IsVisible(),false)
+    equal(ns.NativeTracker.hidden.anchor,env.UIParent)
+    s.combat = true; tracker:Hide(); tracker:Show(); assert(ns.Guard.Enforce())
+    equal(tracker:IsVisible(),false); equal(tracker:GetParent(),ns.NativeTracker.hidden)
+    s.combat = false; assert(ns.Guard.Restore())
+    equal(tracker:GetParent(),env.UIParent); equal(tracker:IsVisible(),true)
+end)
+
+test("restoration preserves native tracker content visibility and addon parenting", function()
+    local ns, s, env = fixture(); local tracker = env.ObjectiveTrackerFrame
+    tracker:Hide(); assert(ns.Guard.Start()); assert(ns.Guard.Restore())
+    equal(tracker:GetParent(),env.UIParent); equal(tracker:IsShown(),false)
+    tracker:Show(); assert(ns.Guard.Start())
+    local replacement = env.CreateFrame("Frame",nil,env.UIParent)
+    tracker:SetParent(replacement); assert(ns.Guard.Restore())
+    equal(tracker:GetParent(),replacement); equal(ns.NativeTracker.saved,nil)
+end)
+
+test("tracker suppression failure rolls back map and minimap settings", function()
+    local ns, s, env = fixture(); s.refuseTracker = true
+    equal(ns.Guard.Start(),false); equal(ns.Guard.active,false); equal(ns.DB.enabled,false)
+    equal(s.map,"1"); equal(s.filters[1].active,true); equal(env.ObjectiveTrackerFrame:GetParent(),env.UIParent)
+    equal(ns.NativeTracker.saved,nil); equal(ns.DB.recovery.questPOI,nil)
+end)
+
+test("tracker restoration failure retains its parent snapshot and offers retry", function()
+    local ns, s, env = fixture(); assert(ns.Guard.Start()); s.refuseTracker = true
+    equal(ns.Guard.Restore(),false); equal(ns.DB.enabled,false); equal(ns.Guard.Action(),"retry")
+    equal(env.ObjectiveTrackerFrame:GetParent(),ns.NativeTracker.hidden)
+    equal(s.map,"1"); equal(s.filters[1].active,true)
+    s.refuseTracker = false; assert(ns.Guard.Toggle())
+    equal(ns.NativeTracker.saved,nil); equal(env.ObjectiveTrackerFrame:GetParent(),env.UIParent)
+    equal(ns.Guard.Action(),"start")
+end)
+
 -- Parse every shipped file, including the presentation and event entrypoint.
-for _, name in ipairs({"Core", "ClientAdapter", "GuidanceGuard", "SettingsPanel", "StatusReport", "NativeHintMarkers", "NativeQuestPane", "Commands"}) do
+for _, name in ipairs({"Core", "ClientAdapter", "NativeTracker", "GuidanceGuard", "SettingsPanel", "StatusReport", "NativeHintMarkers", "NativeQuestPane", "Commands"}) do
     assert(loadfile("addon/JustAHint/" .. name .. ".lua"))
 end
 print(total .. " reader/control fixture tests passed; native UI verification remains required.")

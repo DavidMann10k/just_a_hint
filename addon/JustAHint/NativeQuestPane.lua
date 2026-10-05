@@ -152,14 +152,14 @@ function Pane.Check()
         return type(NS.Resolve("QuestMapFrame_GetFocusedQuestID")) == "function"
             and type(NS.Resolve("C_QuestLog.GetSelectedQuest")) == "function"
     end)
-    return ok and supported == true, "Native quest controls unavailable. Open the map, then try starting again."
+    return ok and supported == true, "Native quest controls unavailable. Open the Map & Quest Log to load them."
 end
 
 function Pane.Install()
     local supported = Pane.Check()
     Pane.available = supported == true
     if not Pane.available then
-        Pane.problem = "Native quest controls unavailable. Open the map, then try starting again."
+        Pane.problem = "Native quest controls unavailable. Open the Map & Quest Log to load them."
         Pane.Restore()
         return false
     end
