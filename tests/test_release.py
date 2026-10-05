@@ -74,6 +74,24 @@ class ReleaseTests(unittest.TestCase):
             self.prepare(fail)
         self.assertFalse((self.root / 'dist').exists())
 
+    def test_source_bundle_preserves_readme_images_without_installing_them(self):
+        image = self.root / 'docs/images/hint.png'
+        image.parent.mkdir(parents=True)
+        data = b'\x89PNG\r\n\x1a\n\xff\x00\r\n'
+        image.write_bytes(data)
+        (self.root / 'README.md').write_text('![Hint](docs/images/hint.png)\n')
+        private = self.root / 'docs/.local/private.png'
+        private.parent.mkdir(parents=True)
+        private.write_bytes(data)
+        destination = self.prepare()
+        with zipfile.ZipFile(destination / f'JustAHint-{self.version}-source.zip') as archive:
+            prefix = f'just-a-hint-{self.version}/'
+            self.assertIn(b'docs/images/hint.png', archive.read(prefix + 'README.md'))
+            self.assertEqual(archive.read(prefix + 'docs/images/hint.png'), data)
+            self.assertNotIn(prefix + 'docs/.local/private.png', archive.namelist())
+        with zipfile.ZipFile(destination / 'JustAHint.zip') as archive:
+            self.assertFalse(any(name.endswith('.png') for name in archive.namelist()))
+
     def test_profile_and_runtime_mismatches_fail_before_checks(self):
         def forbidden():
             self.fail('invalid profile must not run checks')

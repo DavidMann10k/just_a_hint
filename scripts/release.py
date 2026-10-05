@@ -12,6 +12,7 @@ from scripts import package
 ROOT_FILES = ("README.md", "CONTRIBUTING.md", "LICENSE", "DESIGN.md", "API_FINDINGS.md",
               "CHANGELOG.md", "dev.py", ".editorconfig", ".gitattributes", ".gitignore")
 SOURCE_DIRECTORIES = ("addon", "scripts", "tests", "docs", ".github")
+SOURCE_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 SOURCE_SUFFIXES = {".py", ".lua", ".xml", ".md", ".json", ".yml", ".yaml", ".in"}
 
 
@@ -47,14 +48,17 @@ def source_archive(root: Path, output: Path, version: str) -> None:
         if directory.is_symlink():
             raise ValueError("source directory must not be a symlink: " + name)
         paths.extend(path for path in directory.rglob("*") if path.is_file()
-                     and path.suffix in SOURCE_SUFFIXES and "__pycache__" not in path.parts
+                     and path.suffix.lower() in SOURCE_SUFFIXES | SOURCE_IMAGE_SUFFIXES and "__pycache__" not in path.parts
                      and not any(part.startswith(".") for part in path.relative_to(directory).parts))
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_STORED) as archive:
         for path in sorted(paths):
             if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
                 raise ValueError("source file escapes workspace: " + str(path))
             # Same source archive across CRLF checkouts, filesystem clocks and OSes.
-            data = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+            if path.suffix.lower() in SOURCE_IMAGE_SUFFIXES:
+                data = path.read_bytes()
+            else:
+                data = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
             entry = zipfile.ZipInfo(f"just-a-hint-{version}/{path.relative_to(root).as_posix()}", (1980, 1, 1, 0, 0, 0))
             entry.create_system = 3
             entry.external_attr = 0o100644 << 16

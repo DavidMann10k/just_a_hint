@@ -6,13 +6,41 @@ That way your brain can stay engaged with, and immersed in, the game world.
 
 Just a Hint replaces Blizzard's quest tracker. It activates automatically, hides the default tracker and disables automatic navigation, map objectives and minimap quest markers. Read quests and request hints through the Map & Quest Log.
 
-Open the Map & Quest Log, select a quest and press **Hint**. At a distance, an arrow flies to the minimap and points toward the objective. Nearby, a request shows a search area or location pin. Arrival clears the arrow; more detail requires another request. Only one hint is active. Closing the map clears an area or pin; changing quest stage clears guidance. Hints require a usable destination on your current map.
-
 [Download 0.7.2 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.2) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
 
 Target: **Forever beta 1.60.1 / build 70205 / interface 16001**.
 
 Extract `JustAHint.zip` into `Interface/AddOns`, enable the addon and restart the client. No startup command is required. Activation waits for combat to end if necessary.
+
+## Using Just a Hint
+
+Open the Map & Quest Log and select a quest. **Hint** appears below the normal quest controls when a usable destination exists on your current map. Read the quest normally; assistance begins when you press the button. The button is disabled while location data loads.
+
+![Hint beneath the standard quest controls, before a request](docs/images/jah-hint.png)
+
+If you're some distance away, a request closes the map and sends an arrow from screen center to the minimap. With chat feedback enabled, you also get a direction and a rough distance:
+
+![Requested direction in chat: Head west. It's not far from here.](docs/images/jah-direction.png)
+
+The gold arrow on the minimap's edge points toward the requested objective. Follow that bearing while you explore.
+
+![Gold arrow on the minimap pointing toward the requested objective](docs/images/jah-pointer.png)
+
+As you get close, the arrow disappears. It stays cleared until your next request. Open the same quest in the Map & Quest Log and press **Hint** again when you want a local clue. For a quest with a search area, the map highlights that area so you can search it yourself.
+
+![Requested quest search area highlighted beside the quest text](docs/images/jah-zone.png)
+
+If the objective is a point, or an area cannot be confirmed, the nearby hint shows a location pin. Treat it as a place to look around; the native coordinate may not be an exact NPC position. A first request made nearby can show either local clue directly.
+
+![Requested location pin for a nearby point objective](docs/images/jah-point.png)
+
+The button becomes **Clear Hint** while that quest has visible guidance. Press it when you've seen enough. Closing the map clears an area or pin; reopening it leaves the hint cleared.
+
+Only one hint is active. Reading another quest preserves it; requesting another replaces it. Completing a quest step, zoning or reloading clears guidance. A turn-in needs a new request.
+
+The cyan outlines around the button and minimap arrow are screenshot annotations.
+
+## Controls
 
 | Command | Function |
 | --- | --- |
