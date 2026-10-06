@@ -303,6 +303,40 @@ test("one requested bearing clears on arrival and never reappears automatically"
     s.distance=500;s.time=3;ns.Hints.Update();equal(s.shown,false)
     equal(s.areaRequests,0);equal(s.areaDraws,0)
 end)
+test("point and native-region arrivals notify once only after clearing visible guidance",function()
+    for _,kind in ipairs({"point","region"}) do
+        local ns,s=serviceFixture();local notifications=0
+        ns.Bearing.frame={IsVisible=function() return s.shown end}
+        ns.Feedback={BearingRequested=function() end,Arrived=function(owner)
+            equal(owner.id,1);equal(ns.Hints.active,nil);equal(s.shown,false)
+            equal(ns.Hints.controller.reason,"arrived");notifications=notifications+1
+        end}
+        ns.Hints.Request(1)
+        if kind=="region" then
+            ns.Hints.active.region={}
+            ns.RegionHints={Clear=function() end,Distance=function() return s.distance end}
+        end
+        s.distance=140
+        for _,t in ipairs({0.1,0.4,0.7,1.0}) do s.time=t;ns.Hints.Update();equal(notifications,0) end
+        s.time=1.2;ns.Hints.Update();equal(notifications,1)
+        s.distance=500;s.time=3;ns.Hints.Update();equal(notifications,1)
+        equal(s.areaRequests,0);equal(s.areaDraws,0)
+    end
+end)
+test("nearby first requests and interrupted arrival dwell never announce an early arrival",function()
+    local ns,s=serviceFixture();local notifications=0
+    ns.Bearing.frame={IsVisible=function() return s.shown end}
+    ns.Feedback={BearingRequested=function() end,Arrived=function() notifications=notifications+1 end}
+    s.distance=100;ns.Hints.Request(1)
+    for _,t in ipairs({0.1,0.4,0.7,1.0,1.2}) do s.time=t;ns.Hints.Update() end
+    equal(notifications,0);equal(ns.Hints.controller.mode,"area")
+    s.distance=500;s.time=2;ns.Hints.Request(1)
+    s.distance=140;s.time=2.1;ns.Hints.Update();s.time=2.4;ns.Hints.Update()
+    s.error="unavailable";s.time=2.5;ns.Hints.Update();equal(notifications,0)
+    s.error=nil
+    for _,t in ipairs({2.6,2.9,3.2,3.5}) do s.time=t;ns.Hints.Update();equal(notifications,0) end
+    s.time=3.7;ns.Hints.Update();equal(notifications,1)
+end)
 test("requesting B with no data clears A",function()
     local ns,s=serviceFixture(); ns.Hints.Request(1); s.error="no-destination"; ns.Hints.Request(2)
     equal(s.shown,false);equal(ns.Hints.active,nil)

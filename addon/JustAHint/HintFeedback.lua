@@ -6,6 +6,7 @@ local directions = { "north", "northeast", "east", "southeast", "south",
     "southwest", "west", "northwest" }
 local REVEAL, HOLD, TRAVEL, PULSE = 0.18, 0.12, 0.68, 1.2
 local FLIGHT = REVEAL + HOLD + TRAVEL
+local ARRIVAL_PULSE, ARRIVAL_COUNT = 0.6, 2
 
 function Feedback.Text(sample)
     local east = sample.player.y - sample.target.y
@@ -56,7 +57,7 @@ local function finishFlight()
 end
 
 function Feedback.Hide()
-    Feedback.elapsed, Feedback.owner, Feedback.pulseStart = nil, nil, nil
+    Feedback.elapsed, Feedback.owner, Feedback.pulseStart, Feedback.arriving = nil, nil, nil, nil
     finishFlight()
     if Feedback.frame then Feedback.frame:Hide() end
 end
@@ -69,6 +70,26 @@ local function ring(parent, count)
         pieces[i] = texture
     end
     return pieces
+end
+
+local function colorRing(pieces, r, g, b)
+    for _, texture in ipairs(pieces) do texture:SetColorTexture(r, g, b, 1) end
+end
+
+local function ensureFrame()
+    if not Feedback.frame then
+        -- UIParent keeps the flight and pulses outside the minimap's bounds.
+        local frame = CreateFrame("Frame", "JustAHintFeedback", UIParent)
+        Feedback.frame = frame
+        frame:Hide()
+        frame:SetAllPoints(UIParent)
+        frame:SetFrameStrata("TOOLTIP")
+        frame:EnableMouse(false)
+        frame.rim, frame.halo = ring(frame, 64), ring(frame, 24)
+        frame:SetScript("OnUpdate", function(_, dt) Feedback.Update(dt) end)
+    end
+    if not Feedback.frame.rim or not Feedback.frame.halo then error("Minimap pulse rendering is unavailable.") end
+    return Feedback.frame
 end
 
 local function drawRing(pieces, parent, cx, cy, radius, alpha)
@@ -152,6 +173,21 @@ end
 function Feedback.Update(dt)
     if not Feedback.elapsed then return end
     local ok, err = pcall(function()
+        if Feedback.arriving then
+            -- The request has already been cleared. Arrival acknowledges its
+            -- end without retaining a bearing or revealing another hint.
+            if NS.Hints.active or NS.Hints.controller.reason ~= "arrived"
+                or not NS.Guard.active or NS.Guard.problem or not Minimap:IsVisible()
+                or not NS.DB.presentation.minimapPulse then Feedback.Hide(); return end
+            if not finite(dt) or dt < 0 or dt > 0.5 then Feedback.Hide(); return end
+            Feedback.elapsed = Feedback.elapsed + dt
+            if Feedback.elapsed >= ARRIVAL_PULSE * ARRIVAL_COUNT then Feedback.Hide(); return end
+            local cx, cy, radius, _, _, scale = geometry()
+            local phase = (Feedback.elapsed % ARRIVAL_PULSE) / ARRIVAL_PULSE
+            drawRing(Feedback.frame.rim, Feedback.frame, cx, cy, radius + (3 + phase * 9) * scale,
+                0.7 * math.sin(phase * math.pi) ^ 2)
+            return
+        end
         if NS.Hints.active ~= Feedback.owner or NS.Hints.controller.mode ~= "bearing" or not NS.Hints.controller.visible
             or not NS.Guard.active or NS.Guard.problem or not Minimap:IsVisible()
             or not NS.Bearing.frame or not NS.Bearing.frame:IsVisible() then Feedback.Hide(); return end
@@ -176,6 +212,32 @@ function Feedback.Update(dt)
     if not ok then Feedback.Hide(); NS.Note("feedbackError", err) end
 end
 
+function Feedback.Arrived(owner)
+    local ok, err = pcall(function()
+        if type(owner) ~= "table" or owner.arrivalNotified or NS.Hints.active
+            or NS.Hints.controller.mode ~= "none" or NS.Hints.controller.reason ~= "arrived" then return end
+        owner.arrivalNotified = true
+        if not NS.Guard.active or NS.Guard.problem or not Minimap or not Minimap:IsVisible() then return end
+        Feedback.Hide()
+        local options = NS.DB.presentation
+        if options.sound and SOUNDKIT then
+            -- Use the native end-of-tracking cue, with a quiet older-UI fallback.
+            for _, key in ipairs({ "UI_MAP_WAYPOINT_SUPER_TRACK_OFF", "IG_MAINMENU_OPTION_CHECKBOX_OFF" }) do
+                local sound = SOUNDKIT[key]
+                if NS.ID(sound) then NS.Call("PlaySound", sound, "SFX"); break end
+            end
+        end
+        if not options.minimapPulse then return end
+        local frame = ensureFrame()
+        colorRing(frame.rim, 0.35, 0.9, 0.5)
+        for _, texture in ipairs(frame.halo) do texture:SetAlpha(0) end
+        Feedback.arriving, Feedback.elapsed = owner, 0
+        frame:Show()
+        Feedback.Update(0)
+    end)
+    if not ok then Feedback.Hide(); NS.Note("feedbackError", err) end
+end
+
 function Feedback.BearingRequested(sample)
     local ok, err = pcall(function()
         -- No delayed notification: missing/hidden rendering must remain quiet.
@@ -188,19 +250,8 @@ function Feedback.BearingRequested(sample)
         end
         if not options.arrowFlight and not options.arrowPulse and not options.minimapPulse then return end
         Feedback.Hide()
-        if not Feedback.frame then
-            -- UIParent keeps the flight outside the minimap's bounds and lets
-            -- cleanup run even if the minimap becomes hidden during the flight.
-            local frame = CreateFrame("Frame", "JustAHintFeedback", UIParent)
-            Feedback.frame = frame
-            frame:Hide()
-            frame:SetAllPoints(UIParent)
-            frame:SetFrameStrata("TOOLTIP")
-            frame:EnableMouse(false)
-            frame.rim, frame.halo = ring(frame, 64), ring(frame, 24)
-            frame:SetScript("OnUpdate", function(_, dt) Feedback.Update(dt) end)
-        end
-        if not Feedback.frame.rim or not Feedback.frame.halo then error("Minimap pulse rendering is unavailable.") end
+        ensureFrame()
+        colorRing(Feedback.frame.rim, 1, 0.82, 0.35)
         if options.arrowFlight and not Feedback.frame.flight then
             Feedback.frame.trail = {}
             for index = 1, 5 do Feedback.frame.trail[index] = flightTexture(Feedback.frame) end

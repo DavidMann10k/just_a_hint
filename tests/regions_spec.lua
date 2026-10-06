@@ -8,7 +8,7 @@ local function load(ns,env,name)
 end
 local function fixture()
  local state={time=0,px=0.25,py=0.9,stage="objective",mapID=1,phase="objective",
-  queryCalls=0,draws=0,feedback=0,areas=0,frames={},nativeX=0.8,nativeY=0.5,notes={}}
+  queryCalls=0,draws=0,feedback=0,arrivals=0,areas=0,frames={},nativeX=0.8,nativeY=0.5,notes={}}
  local env=setmetatable({}, {__index=_G});env._G=env;env.UIParent={}
  env.GetTime=function() return state.time end
  env.CreateFrame=function(kind,_,parent)
@@ -66,7 +66,12 @@ local function fixture()
   state.areas=state.areas+1;state.areaShown=true;state.areaPoint=point;return true end,
   IsVisible=function() return state.areaShown end,Check=function() return state.areaShown,"map-closed" end,
   Update=function() return true end,Suspend=function() state.areaShown=false;return true end}
- ns.Feedback={BearingRequested=function(sample) state.feedback=state.feedback+1;state.feedbackSample=sample end}
+ ns.Feedback={BearingRequested=function(sample) state.feedback=state.feedback+1;state.feedbackSample=sample end,
+  Arrived=function(owner)
+   equal(owner.id,1);equal(ns.Hints.active,nil);equal(state.shown,false)
+   equal(ns.RegionHints.region,nil);equal(ns.Hints.controller.reason,"arrived")
+   state.arrivals=state.arrivals+1
+  end}
  load(ns,env,"HintController");load(ns,env,"RegionHints");load(ns,env,"Hints")
  function state.tick()
   state.time=state.time+0.02
@@ -103,18 +108,18 @@ test("nearest sample stays inside a native site and the requested target never s
  s.px=0.7;s.py=0.9;s.nativeX=0.9;ns.Hints.Update()
  equal(ns.Hints.active.target,target);equal(s.draws,1);equal(s.feedback,1)
 end)
-test("arrival at another region stays silent and cannot revive after walking away",function()
+test("arrival at another region acknowledges once without revealing more or reviving after walking away",function()
  local ns,s=fixture();ns.Hints.Request(1);s.finish();assert(ns.Hints.active.target.x<3000)
  s.px=0.8;s.py=0.5
  for _=1,65 do s.tick() end
- equal(ns.Hints.active,nil);equal(s.shown,false);equal(s.areas,0);equal(s.feedback,1)
+ equal(ns.Hints.active,nil);equal(s.shown,false);equal(s.areas,0);equal(s.feedback,1);equal(s.arrivals,1)
  equal(ns.RegionHints.region,nil);equal(ns.RegionHints.frame.shown,false)
- s.py=0.9;for _=1,20 do s.tick() end;equal(s.shown,false);equal(s.areas,0)
+ s.py=0.9;for _=1,20 do s.tick() end;equal(s.shown,false);equal(s.areas,0);equal(s.arrivals,1)
 end)
 test("being inside any site authorizes an area directly despite a distant native point",function()
  local ns,s=fixture();s.px=0.2;s.py=0.5;s.nativeX=0.8
  ns.Hints.Request(1);s.finish();equal(ns.Hints.controller.mode,"area")
- equal(s.areas,1);equal(s.feedback,0);equal(s.shown,false)
+ equal(s.areas,1);equal(s.feedback,0);equal(s.shown,false);equal(s.arrivals,0)
  assert(s.areaPoint.x<0.3);ns.Hints.Clear();equal(s.areaShown,false);equal(ns.RegionHints.region,nil)
 end)
 test("seeding current position catches tiny native regions missed by a regular grid",function()
@@ -126,7 +131,7 @@ test("ordinary progress preserves samples while new stages clear all invisible g
  local ns,s=fixture();ns.Hints.Request(1);s.finish();local r=ns.Hints.active.region
  ns.Hints.Update();equal(ns.Hints.active.region,r);equal(s.draws,1)
  s.stage="new objective";ns.Hints.Update();equal(ns.Hints.active,nil);equal(ns.RegionHints.frame.shown,false)
- equal(s.areas,0);equal(s.feedback,1)
+ equal(s.areas,0);equal(s.feedback,1);equal(s.arrivals,0)
 end)
 test("pending cancellation cannot complete or resurrect a replaced request",function()
  for _,why in ipairs({"clear","stage","zone","combat","removed","restore"}) do
@@ -138,7 +143,7 @@ test("pending cancellation cannot complete or resurrect a replaced request",func
   elseif why=="removed" then s.dataError="removed"
   else ns.Guard.active=false end
   ns.Hints.Update();equal(ns.Hints.active,nil);late(nil)
-  equal(s.feedback,0);equal(s.areas,0);equal(s.shown,false);equal(ns.RegionHints.job,nil)
+  equal(s.feedback,0);equal(s.areas,0);equal(s.shown,false);equal(s.arrivals,0);equal(ns.RegionHints.job,nil)
  end
  local ns,s=fixture();ns.Hints.Request(1);local late=ns.RegionHints.job.done
  ns.Hints.Request(2);late(nil);assert(ns.Hints.active.pending);equal(ns.Hints.active.id,2)

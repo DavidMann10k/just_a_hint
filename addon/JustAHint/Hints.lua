@@ -223,8 +223,13 @@ function Hints.Update()
     else distance=NS.HintData.Distance(sample.player,active.target) end
     -- Missing facing interrupts the arrival dwell too.
     if NS.HintData.Facing() == nil then distance = nil end
+    local wasVisible = Hints.HasVisibleHint(active.id)
     Hints.controller:Update(distance, GetTime())
-    if Hints.controller.mode == "none" then Hints.Clear("arrived"); return end
+    if Hints.controller.mode == "none" then
+        Hints.Clear("arrived")
+        if wasVisible and NS.Feedback then NS.Feedback.Arrived(active) end
+        return
+    end
     if not Hints.controller.visible then NS.Bearing.Hide(); return end
     render(sample)
 end

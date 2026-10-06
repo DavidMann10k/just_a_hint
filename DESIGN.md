@@ -20,7 +20,7 @@ Native details use Hint/Clear Hint as one toggle. Clear appears only for the dis
 | --- | --- |
 | Accept, read or hover | No guidance. |
 | Hint far away on the current map | One minimap-rim bearing; no destination pin or route. |
-| Arrival | Arrow disappears; nothing replaces it. Walking away cannot restart it. |
+| Arrival | Arrow disappears with an optional sound and two green minimap pulses; no further hint appears. Walking away cannot restart it. |
 | Hint nearby, including the first request | Native search area, or a built-in marker at the native coordinate if a region is unconfirmed. |
 | Read B while A has guidance | Preserve A; disclose nothing for B. |
 | Hint for B | Replace A, including when B's data is unavailable. |
@@ -35,7 +35,9 @@ A bounded matching-quest hit query confirms a native region. It cannot prove abs
 
 ## Feedback and persistence
 
-An explicitly rendered bearing can close the native map and produce an optional arrow flight from screen center to its minimap-rim position, followed by optional arrow/minimap pulses, sound and plain chat direction with a broad distance phrase. The built-in arrow grows briefly, follows an eased arc with a short trail, shrinks and turns into the live minimap bearing in about one second. An addon-owned, noninteractive overlay follows the minimap's position, effective scale and current bearing. The ordinary arrow is hidden only during flight, and restored on landing, cancellation or animation failure. Flight can be disabled independently of pulses; interruption or a long frame stall ends feedback without replay. No countdown or yard claim is added. Nearby requests use chat: “You're close. Search around here.” for a confirmed region, or “You're close. Look around the marked spot.” for a point. No captions below the map remain. Reading, arrival, redraws, ordinary progress and clearing produce no new feedback. Duplicate chat messages are suppressed for ten seconds.
+An explicitly rendered bearing can close the native map and produce an optional arrow flight from screen center to its minimap-rim position, followed by optional arrow/minimap pulses, sound and plain chat direction with a broad distance phrase. The built-in arrow grows briefly, follows an eased arc with a short trail, shrinks and turns into the live minimap bearing in about one second. An addon-owned, noninteractive overlay follows the minimap's position, effective scale and current bearing. The ordinary arrow is hidden only during flight, and restored on landing, cancellation or animation failure. Flight can be disabled independently of pulses; interruption or a long frame stall ends feedback without replay. No countdown or yard claim is added. Nearby requests use chat: “You're close. Search around here.” for a confirmed region, or “You're close. Look around the marked spot.” for a point. No captions below the map remain. Reading, redraws, ordinary progress and clearing produce no new feedback. Duplicate chat messages are suppressed for ten seconds.
+
+Confirmed arrival ends a visible bearing before playing one built-in waypoint deactivation sound and two green minimap-rim pulses over 1.2 seconds. The existing sound and minimap-pulse preferences independently control these effects. Arrival adds no chat, map detail or replacement arrow. Hidden guidance, manual clearing, completion, data loss, zoning and restoration never announce arrival. New requests restore gold feedback; interruptions cannot queue or replay the arrival cue.
 
 Persist activation, feedback settings and guidance-restoration snapshots. Hints and animation state remain session-local. Restore returns saved map/minimap settings, persists the opt-out and retains failed writes for retry. Other characters restore their minimap snapshots on login. `/jah start` explicitly re-enables the addon.
 

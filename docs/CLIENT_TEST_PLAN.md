@@ -21,7 +21,8 @@ Test the installed version on the exact client build. Record Pass / Fail / Not a
 - With arrow flight enabled, the arrow grows at screen center, sweeps to its minimap-rim position with a short trail, then produces the enabled landing pulses. No duplicate stationary arrow remains during flight. Try different UI/minimap scales and positions, and turn during flight to check the handoff.
 - Clear, replace, zone, restore or lose valid data during flight: the overlay ends and cannot replay. Hide the minimap during flight and show it again: no stranded center arrow or new feedback remains. A long frame stall ends the animation with the ordinary bearing restored if still valid.
 - Rotate with fixed and rotating minimaps: bearing is correct and smooth. Chat direction is useful for the quest.
-- Arrival removes the arrow, reveals nothing else and stays off when walking away. A fresh far-away request can show it again.
+- Arrival removes the arrow, plays one distinct built-in sound and pulses the minimap rim green exactly twice over about 1.2 seconds. No chat, region or pin appears; the arrow stays off when walking away. Check both native-point and sampled-region arrivals. A fresh far-away request can show the arrow again with gold feedback.
+- Clear, replace, complete a stage, lose data, zone or restore: no arrival cue. Hide the minimap before arrival: no delayed cue when it returns. Hide it, disable minimap pulses, reload or start a new request during arrival feedback: the green overlay ends without replay.
 - Read B while A's arrow is active: preserve A. Hint for B replaces A; unavailable B clears A without acquiring help later.
 
 ## Nearby area and marker
@@ -50,7 +51,7 @@ Test the installed version on the exact client build. Record Pass / Fail / Not a
 ## Presentation and coverage
 
 - Independently disable arrow flight, chat, sound and each pulse. Disabling flight keeps the immediate minimap arrow and any enabled pulses. Disabling flight mid-animation restores the minimap arrow immediately. Preferences survive reload; explicit enabled bearing feedback is perceptible.
-- Nearby area/point feedback is chat only; no map caption, sound or pulse. Arrival/read/clear never starts feedback.
+- Nearby area/point requests are chat only; no map caption, sound or pulse. Read and Clear stay quiet. Arrival sound and its two green minimap pulses respect sound and minimap-pulse settings independently; the arrow-pulse and flight settings do not control arrival. Re-enabling settings cannot replay a finished cue.
 - Check combat, tracker quest items, caves, instances, transport steps and multiple-objective quests as available. Missing support is different from a wrong destination or error.
 - Run `/jah restore` on each activated character before disabling/uninstalling; verify ordinary Blizzard guidance returns.
 

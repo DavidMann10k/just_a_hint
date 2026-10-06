@@ -8,9 +8,9 @@ That way your brain can stay engaged with, and immersed in, the game world.
 
 Just a Hint activates automatically. It keeps Blizzard's quest list and objective counts on the right, hides its guidance buttons and disables automatic navigation, map objectives and minimap quest markers. Click a quest to open the Map & Quest Log; request hints there.
 
-[Download 0.7.4 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.4) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
+[Download 0.7.5 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.5) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
 
-Target: **Forever beta 1.60.1 / build 70205 / interface 16001**.
+Target: **Forever beta 1.60.1 / build 70235 / interface 16001**.
 
 Extract `JustAHint.zip` into `Interface/AddOns`, enable the addon and restart the client. No startup command is required. Activation waits for combat to end if necessary.
 
@@ -28,7 +28,7 @@ The gold arrow on the minimap's edge points toward the requested objective. Foll
 
 ![Gold arrow on the minimap pointing toward the requested objective](docs/images/jah-pointer.png)
 
-As you get close, the arrow disappears. It stays cleared until your next request. Open the same quest in the Map & Quest Log and press **Hint** again when you want a local clue. For a quest with a search area, the map highlights that area so you can search it yourself.
+As you get close, the arrow disappears with a distinct sound and two green minimap pulses. It stays cleared until your next request. Open the same quest in the Map & Quest Log and press **Hint** again when you want a local clue. For a quest with a search area, the map highlights that area so you can search it yourself.
 
 ![Requested quest search area highlighted beside the quest text](docs/images/jah-zone.png)
 
@@ -39,6 +39,8 @@ If the objective is a point, or an area cannot be confirmed, the nearby hint sho
 The button becomes **Clear Hint** while that quest has visible guidance. Press it when you've seen enough. Closing the map clears an area or pin; reopening it leaves the hint cleared.
 
 Only one hint is active. Reading another quest preserves it; requesting another replaces it. Completing a quest step, zoning or reloading clears guidance. A turn-in needs a new request.
+
+Sound and minimap pulses can be disabled independently in `/jah`. Arrival feedback acknowledges the cleared direction; it adds no map detail. Manual clearing and other cleanup stay quiet.
 
 The cyan outlines around the button and minimap arrow are screenshot annotations.
 

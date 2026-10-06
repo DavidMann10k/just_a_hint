@@ -606,3 +606,29 @@ native click and item handlers, combat refresh, collapse/parent ownership,
 saved-setting recovery and upgrading an enabled installation. Repeated native
 clicks, button suppression and quest-item/combat behavior still require the
 target-client checks in [the acceptance plan](docs/CLIENT_TEST_PLAN.md).
+
+### Arrival acknowledgement: 0.7.5
+
+The requested bearing's confirmed arrival transition now clears all guidance
+before playing one optional sound and two optional green minimap-rim pulses.
+The pulses last 0.6 seconds each and reuse the noninteractive feedback overlay,
+following the minimap's live position and effective scale. Sound and minimap
+pulses use the existing independent preferences. Arrival reveals no additional
+quest detail and writes no chat. Only a previously visible bearing can announce
+arrival; other cleanup reasons and nearby first requests cannot do so. A new
+request cancels green feedback and restores its gold color. Hidden minimaps,
+disabled pulses, restoration and frame stalls cannot queue a later replay.
+
+Blizzard's modern [sound-kit table](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_SharedXML/Mainline/SoundKitConstants.lua)
+defines UI_MAP_WAYPOINT_SUPER_TRACK_OFF (171361), selected here for the end of
+requested tracking. IG_MAINMENU_OPTION_CHECKBOX_OFF (857) is the fallback when
+that constant is absent. Playback uses the SFX channel without bypassing sound
+settings or shipping audio. This source does not establish availability,
+audibility or subjective fit in Forever; those remain target-client checks.
+Local installation metadata now identifies build 70235 / interface 16001; no
+paired GetBuildInfo capture or in-game observation is claimed.
+
+Fixtures exercise the actual hint-to-feedback arrival path, exact pulse count
+and duration, distinct sound and fallback, preference persistence, absence of
+new guidance, quiet lifecycle cleanup, point and region arrivals, interrupted
+dwell, hidden/moved/scaled minimaps and sound/rendering failures.

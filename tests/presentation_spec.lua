@@ -10,13 +10,17 @@ local function load(ns,env,name)
 end
 local function fixture(saved)
  local env=setmetatable({},{__index=_G});env._G=env
- local s={time=0,messages={},sounds=0,requests=0,mapID=2521,events={},availability='ready'}
+ local s={time=0,messages={},sounds=0,soundLog={},requests=0,mapID=2521,events={},availability='ready'}
  local function ui(parent)
   local f={shown=true,enabled=true,scripts={},points={},parent=parent}
   for _,name in ipairs({'SetAllPoints','SetFrameLevel','EnableMouse','SetBackdrop','SetBackdropColor',
-   'SetClampedToScreen','SetJustifyH','SetJustifyV','SetColorTexture',
+   'SetClampedToScreen','SetJustifyH','SetJustifyV',
    'SetVertexColor','SetBackdropBorderColor','SetMovable','RegisterForDrag','SetFontObject','SetFont','SetSpacing','StartMoving','StopMovingOrSizing'}) do
    f[name]=function() if s.textureError and name=='SetColorTexture' then error('restricted texture') end end
+  end
+  function f:SetColorTexture(...)
+   if s.textureError then error('restricted texture') end
+   self.color={...}
   end
   function f:SetPoint(...) self.points[#self.points+1]={...} end
   function f:ClearAllPoints() self.points={} end
@@ -88,8 +92,12 @@ local function fixture(saved)
  env.HideUIPanel=function(frame) s.closes=(s.closes or 0)+1;frame:Hide() end
  env.GetTime=function() return s.time end
  env.InCombatLockdown=function() return s.combat end
- env.SOUNDKIT={IG_MAINMENU_OPTION_CHECKBOX_ON=856}
- env.PlaySound=function() s.sounds=s.sounds+1 end
+ env.SOUNDKIT={IG_MAINMENU_OPTION_CHECKBOX_ON=856,IG_MAINMENU_OPTION_CHECKBOX_OFF=857,
+  UI_MAP_WAYPOINT_SUPER_TRACK_OFF=171361}
+ env.PlaySound=function(id,channel)
+  s.sounds=s.sounds+1;s.soundLog[#s.soundLog+1]={id=id,channel=channel}
+  if s.soundError then error('sound unavailable') end
+ end
  env.DEFAULT_CHAT_FRAME={AddMessage=function(_,text) s.messages[#s.messages+1]=text end}
  env.JustAHintDB=saved
  local ns={};load(ns,env,'Core');ns.Initialize()
@@ -106,6 +114,33 @@ local function fixture(saved)
 end
 local function sample(east,north,distance)
  return {player={x=0,y=east},target={x=north,y=0},distance=distance or 500}
+end
+
+local function arrivalFixture(saved)
+ local ns,s,env=fixture(saved)
+ env.C_Texture={GetAtlasInfo=function() return {width=32,height=48} end}
+ load(ns,env,'MinimapBearing');load(ns,env,'HintController')
+ s.distance,s.stage=500,'stage-one'
+ ns.Area={Clear=function() s.areaShown=false end}
+ ns.HintData={
+  CurrentMap=function() return s.mapID end,
+  Facing=function() if not s.noFacing then return 0 end end,
+  Distance=function(a,b) return math.sqrt((a.x-b.x)^2+(a.y-b.y)^2) end,
+  Snapshot=function()
+   if s.dataError then return nil,s.dataError end
+   return {stage=s.stage,mapID=s.mapID,target={x=0,y=0,space=0},player={x=-s.distance,y=0,space=0},
+    distance=s.distance,destination={source='fixture-native-point'}}
+  end,
+ }
+ load(ns,env,'Hints')
+ return ns,s,env
+end
+
+local function arrive(ns,s)
+ s.distance=140
+ for _,time in ipairs({0.1,0.4,0.7,1.0,1.2}) do s.time=time;ns.Hints.Update() end
+ equal(ns.Hints.active,nil);equal(ns.Hints.controller.reason,'arrived')
+ equal(ns.Bearing.frame:IsShown(),false)
 end
 
 test('preferences preserve false and reload never starts feedback',function()
@@ -248,6 +283,122 @@ test('stalls and unavailable animation geometry or artwork restore the bearing w
   equal(s.requests,0)
  end
 end)
+
+test('arrival clears the bearing before one distinct sound and exactly two green minimap pulses',function()
+ local ns,s=arrivalFixture();ns.Hints.Request(1);local owner=ns.Hints.active
+ equal(s.soundLog[1].id,856)
+ arrive(ns,s)
+ equal(s.sounds,2);equal(s.soundLog[2].id,171361);equal(s.soundLog[2].channel,'SFX')
+ equal(ns.Feedback.arriving,owner);equal(ns.Feedback.flying,nil)
+ local frame=ns.Feedback.frame
+ near(frame.rim[1].color[1],0.35);near(frame.rim[1].color[2],0.9);near(frame.rim[1].color[3],0.5)
+ equal(frame.halo[1].alpha,0);equal(frame.flight:IsShown(),false)
+ near(frame.rim[1].alpha,0)
+ ns.Feedback.Update(0.3);near(frame.rim[1].alpha,0.7)
+ ns.Feedback.Update(0.3);near(frame.rim[1].alpha,0)
+ ns.Feedback.Update(0.3);near(frame.rim[1].alpha,0.7)
+ ns.Feedback.Update(0.31);equal(frame:IsShown(),false);equal(ns.Feedback.elapsed,nil)
+ equal(ns.Feedback.arriving,nil);equal(#s.messages,1);equal(s.areaShown,false)
+ ns.Feedback.Arrived(owner);ns.Feedback.Update(0.3)
+ equal(s.sounds,2);equal(frame:IsShown(),false)
+ s.distance=500;s.time=3;ns.Hints.Update();equal(ns.Bearing.frame:IsShown(),false)
+end)
+
+test('arrival works after the request animation has finished',function()
+ local ns,s=arrivalFixture();ns.Hints.Request(1)
+ for i=1,7 do ns.Feedback.Update(0.4) end
+ equal(ns.Feedback.frame:IsShown(),false)
+ arrive(ns,s);equal(ns.Feedback.elapsed,0);equal(s.sounds,2)
+ ns.Feedback.Update(0.3);assert(ns.Feedback.frame.rim[1].alpha>0)
+end)
+
+test('arrival sound and minimap pulses respect saved preferences independently',function()
+ for _,options in ipairs({{sound=false},{minimapPulse=false},{sound=false,minimapPulse=false}}) do
+  local ns,s=arrivalFixture({presentation=options});ns.Hints.Request(1);arrive(ns,s)
+  local sounds=options.sound==false and 0 or 2
+  equal(s.sounds,sounds)
+  equal(ns.Feedback.arriving~=nil,options.minimapPulse~=false)
+  ns.SettingsPanel.Set('sound',true);ns.Feedback.Update(0.1)
+  equal(s.sounds,sounds)
+ end
+ local ns,s=arrivalFixture({presentation={arrowFlight=false,arrowPulse=false}})
+ ns.Hints.Request(1);arrive(ns,s);assert(ns.Feedback.arriving)
+ equal(ns.Feedback.frame.flight,nil);equal(ns.Feedback.frame.halo[1].alpha,0)
+end)
+
+test('disabling arrival pulses or hiding the minimap cancels without replay',function()
+ for _,case in ipairs({'setting','hidden','stall','geometry'}) do
+  local ns,s,env=arrivalFixture();ns.Hints.Request(1);arrive(ns,s);ns.Feedback.Update(0.3)
+  if case=='setting' then ns.SettingsPanel.Set('minimapPulse',false)
+  elseif case=='hidden' then env.Minimap:Hide()
+  elseif case=='geometry' then env.Minimap.rect={0,0,0/0,160} end
+  ns.Feedback.Update(case=='stall' and 2 or 0.1)
+  equal(ns.Feedback.elapsed,nil);equal(ns.Feedback.frame:IsShown(),false)
+  env.Minimap:Show();env.Minimap.rect={100,100,160,160};ns.SettingsPanel.Set('minimapPulse',true)
+  ns.Feedback.Update(0.3);equal(ns.Feedback.frame:IsShown(),false);equal(s.sounds,2)
+ end
+end)
+
+test('arrival pulses follow a moved and scaled minimap without needing a bearing',function()
+ local ns,s,env=arrivalFixture();ns.Hints.Request(1);arrive(ns,s)
+ env.UIParent:SetScale(0.8);env.Minimap:SetScale(0.6);env.Minimap.rect={520,420,200,160}
+ ns.Feedback.Update(0.3)
+ local point=ns.Feedback.frame.rim[1].points[1]
+ near(point[4],465+60+7.5*0.75);near(point[5],375)
+ equal(ns.Bearing.frame:IsShown(),false);equal(ns.Hints.active,nil)
+end)
+
+test('arrival uses an older built-in fallback and sound failures do not prevent pulses',function()
+ for _,case in ipairs({'fallback','missing','error'}) do
+  local ns,s,env=arrivalFixture();ns.Hints.Request(1)
+  if case=='fallback' then env.SOUNDKIT.UI_MAP_WAYPOINT_SUPER_TRACK_OFF=nil
+  elseif case=='missing' then env.SOUNDKIT=nil
+  else s.soundError=true end
+  arrive(ns,s);assert(ns.Feedback.arriving)
+  equal(s.sounds,case=='missing' and 1 or 2)
+  if case=='fallback' then equal(s.soundLog[2].id,857) end
+  ns.Feedback.Update(0.3);assert(ns.Feedback.frame.rim[1].alpha>0)
+ end
+end)
+
+test('clear replacement zoning restoration and completion never announce arrival',function()
+ for _,case in ipairs({'clear','replacement','zone','restore','complete','missing','heading'}) do
+  local ns,s=arrivalFixture();ns.Hints.Request(1)
+  if case=='clear' then ns.Hints.Clear('cleared')
+  elseif case=='replacement' then ns.Hints.Request(2)
+  elseif case=='zone' then s.mapID=999;ns.Hints.Update()
+  elseif case=='restore' then ns.Guard.active=false;ns.Hints.Update()
+  elseif case=='complete' then s.stage='turn-in';ns.Hints.Update()
+  elseif case=='missing' then s.dataError='unavailable';ns.Hints.Update()
+  else s.noFacing=true;ns.Hints.Update() end
+  equal(ns.Feedback.arriving,nil)
+  for _,sound in ipairs(s.soundLog) do equal(sound.id,856) end
+ end
+end)
+
+test('arrival with a hidden minimap has no delayed sound or flash',function()
+ local ns,s,env=arrivalFixture();ns.Hints.Request(1);env.Minimap:Hide();arrive(ns,s)
+ equal(s.sounds,1);equal(ns.Feedback.arriving,nil)
+ env.Minimap:Show();ns.Feedback.Update(0.3);ns.Hints.Update()
+ equal(s.sounds,1);equal(ns.Feedback.frame:IsShown(),false)
+end)
+
+test('new requests restore gold and cleanup interrupts an arrival pulse',function()
+ for _,case in ipairs({'request','clear','zone','restore'}) do
+  local ns,s=arrivalFixture();ns.Hints.Request(1);arrive(ns,s);ns.Feedback.Update(0.3)
+  if case=='request' then
+   s.distance=500;ns.Hints.Request(2)
+   equal(ns.Hints.active.id,2);equal(ns.Feedback.arriving,nil)
+   equal(s.sounds,3);near(ns.Feedback.frame.rim[1].color[1],1)
+   near(ns.Feedback.frame.rim[1].color[2],0.82);near(ns.Feedback.frame.rim[1].color[3],0.35)
+  else
+   if case=='restore' then ns.Guard.active=false end
+   ns.Hints.Clear(case);ns.Feedback.Update(0.3)
+   equal(ns.Feedback.arriving,nil);equal(ns.Feedback.frame:IsShown(),false);equal(s.sounds,2)
+  end
+ end
+end)
+
 test('native default observes controls without opening quests or altering native functions and layout',function()
  local ns,s,env=fixture({presentation={standalone=false}})
  local detailFn,mapFn,eventFn=env.QuestMapFrame_ShowQuestDetails,env.WorldMapFrame.SetMapID,env.EventRegistry.TriggerEvent

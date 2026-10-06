@@ -4,8 +4,8 @@ NS.SettingsPanel = Panel
 local options = {
     { "arrowFlight", "Fly the requested arrow to the minimap" },
     { "arrowPulse", "Pulse around the requested arrow" },
-    { "minimapPulse", "Pulse around the minimap" },
-    { "sound", "Play a soft sound when requesting direction" },
+    { "minimapPulse", "Pulse the minimap for directions and arrival" },
+    { "sound", "Play sounds for requested directions and arrival" },
     { "text", "Write requested hints in chat" },
 }
 function Panel.Value(key) return NS.DB.presentation[key] end

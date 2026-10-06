@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "addon": "JustAHint",
+  "version": "0.7.5",
+  "interface": 16001,
+  "status": "preview",
+  "nativeValidation": "partial",
+  "observedClient": {
+    "name": "Forever beta",
+    "version": "1.60.1",
+    "build": "70235"
+  },
+  "clientEvidence": "Target derived from local client installation metadata.",
+  "pending": [
+    "Arrival cue audibility and exactly two green pulses on native point and region arrivals",
+    "Arrival preferences, cancellation, hidden minimap and moved/scaled minimaps",
+    "Quest-list visibility, native guidance-button suppression and repeated quest clicks",
+    "Quest-item controls, combat, collapse state and other UI addons",
+    "Fresh-install activation, saved opt-out and restoration recovery",
+    "Hint lifecycle, animation, region loading and broader map coverage"
+  ]
+}

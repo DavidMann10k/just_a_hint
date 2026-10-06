@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.5 — arrival feedback
+
+- When a requested direction clears on arrival, play one built-in waypoint deactivation cue and pulse the minimap rim green twice over 1.2 seconds.
+- Honor sound and minimap-pulse preferences independently. Manual clearing, completion, zoning, missing data and nearby first requests stay quiet.
+- Cancel interrupted arrival effects without replay. New direction requests retain their gold feedback.
+- Updating an existing installation requires `/reload`.
+
 ## 0.7.4 — visible quest list
 
 - Keep Blizzard's quest list and objective counts visible on the right. Native quest clicks open the Map & Quest Log; quest-item controls remain available.
