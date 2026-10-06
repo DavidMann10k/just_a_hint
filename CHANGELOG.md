@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0
+
+- First stable release for Forever beta 1.60.1 / build 70235 / interface 16001, following the accepted RC4 client pass.
+- Includes requested direction, search-area and location hints, center-to-minimap arrow feedback, and arrival ping with two green pulses.
+- Runtime behavior matches RC4. Updating requires `/reload`.
+
 ## 0.7.8 — RC4
 
 - Hold the requested arrow at screen center for 0.25 seconds after its reveal. Pulse the gold ring once there and follow the arrow as the ring fades.

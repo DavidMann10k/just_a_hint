@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "addon": "JustAHint",
+  "version": "1.0.0",
+  "interface": 16001,
+  "status": "stable",
+  "nativeValidation": "verified",
+  "observedClient": {
+    "name": "Forever beta",
+    "version": "1.60.1",
+    "build": "70235"
+  },
+  "clientEvidence": "On 2026-10-06 the user accepted RC4 (0.7.8), reporting \"Everything is green\", fulfilling the agreed condition for full release. Acceptance is a user-reported in-game pass on the current installation, whose target comes from local metadata; it is not an automated native capture or a claim about other clients or every quest.",
+  "pending": []
+}

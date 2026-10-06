@@ -8,7 +8,7 @@ That way your brain can stay engaged with, and immersed in, the game world.
 
 Just a Hint activates automatically. It keeps Blizzard's quest list and objective counts on the right, hides its guidance buttons and disables automatic navigation, map objectives and minimap quest markers. Click a quest to open the Map & Quest Log; request hints there.
 
-[Download 0.7.8 RC4](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.8) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
+[Download 1.0.0](https://github.com/DavidMann10k/just_a_hint/releases/tag/v1.0.0) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
 
 Target: **Forever beta 1.60.1 / build 70235 / interface 16001**.
 

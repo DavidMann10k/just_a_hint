@@ -69,7 +69,7 @@ def main(argv=None, root=ROOT):
             if args.interface is None:
                 raise ValueError("release requires an explicit --interface / JAH_INTERFACE / configured interface")
             destination = release.prepare(root, args.addon, args.version, args.interface, lambda: checks(root, args.lua))
-            print("Prepared preview candidate (not installed or published): " + str(destination))
+            print("Prepared release candidate (not installed or published): " + str(destination))
             return 0
         if args.command == "build" and args.interface is not None:
             client = None

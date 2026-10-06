@@ -1,26 +1,26 @@
-# Prepare a preview candidate
+# Prepare a release candidate
 
 Candidate preparation is local and does not install, tag, push or publish anything. Use Python 3.11+ and Lua 5.1/LuaJIT. A game installation is not required.
 
 1. Match the version in the addon's TOC template and Core.lua.
-2. Add `docs/releases/ADDON-VERSION.json` and its Markdown release notes. The profile records the target interface, observed client and pending native checks. This pipeline currently accepts previews with partial native validation only.
+2. Add `docs/releases/ADDON-VERSION.json` and its Markdown release notes. The profile records the target interface, observed client and pending native checks. Previews use `status: preview` and `nativeValidation: partial`. Stable releases use `status: stable` and `nativeValidation: verified`, with the observed client, explicit acceptance evidence and an empty pending-check list. Automated fixtures do not establish native acceptance.
 3. Update player instructions and the changelog; distinguish client observations from fixture tests. Keep private paths and raw captures out of public files.
 4. Run:
 
 ```text
-python dev.py release --version 0.7.8 --interface 16001
+python dev.py release --version 1.0.0 --interface 16001
 ```
 
 The interface must agree with the profile. Explicit flags, JAH_INTERFACE or configured interface are accepted; release preparation does not discover a game or infer an unverified target. The command requires all Python and Lua checks to pass, then builds the runtime archive and a reproducible source archive.
 
-Outputs live under `dist/releases/JustAHint-0.7.8-interface16001/`:
+Outputs live under `dist/releases/JustAHint-1.0.0-interface16001/`:
 
 | Asset | Purpose |
 | --- | --- |
 | JustAHint.zip | Installable addon and license. |
 | JustAHint.manifest.json | Runtime file hashes, version and target interface. |
 | JustAHint.sha256 | Runtime ZIP checksum. |
-| JustAHint-0.7.8-source.zip | Public source, tests, tools and docs. |
+| JustAHint-1.0.0-source.zip | Public source, tests, tools and docs. |
 | INSTALL.md / RELEASE_NOTES.md | Player instructions and known limitations. |
 | RELEASE.json | Target and verification record. |
 | SHA256SUMS | Checksums for every other candidate asset. |
@@ -37,8 +37,8 @@ These workflow files are prepared locally. Hosted results require an actual GitH
 
 ## Before publishing
 
-Review the candidate's notes and checksums, and record remaining playtest cases honestly. Verify native behavior on the exact supported build. Publication is a separate deliberate action; the current preview remains partially verified. Consult [the client test plan](CLIENT_TEST_PLAN.md) and [API findings](../API_FINDINGS.md).
+Review the candidate's notes and checksums, and record native acceptance and remaining playtest cases honestly. Verify native behavior on the exact supported build before selecting stable status. Publication is a separate deliberate action. Consult [the client test plan](CLIENT_TEST_PLAN.md) and [API findings](../API_FINDINGS.md).
 
-After reviewing the candidate and passing the validation workflow for its commit, deliberately create and push its matching `vVERSION` tag. `.github/workflows/publish-preview.yml` runs the full local pipeline again on that tagged commit, verifies all candidate checksums, uploads the complete bundle to a draft GitHub prerelease, and publishes it only after uploads succeed. The workflow uses GitHub's supplied token; local GitHub CLI sign-in is not required. Local `dev.py release` remains preparation only.
+After reviewing the candidate and passing the validation workflow for its commit, deliberately create and push its matching `vVERSION` tag. `.github/workflows/publish-release.yml` runs the full local pipeline again on that tagged commit, verifies all candidate checksums, uploads the complete bundle to a draft GitHub release, and publishes it only after uploads succeed. The validated profile selects prerelease or stable publication. Previews are never marked latest; a stable release becomes the latest download. The workflow uses GitHub's supplied token; local GitHub CLI sign-in is not required. Local `dev.py release` remains preparation only.
 
-For example, the 0.7.8 publication tag is `v0.7.8`. Published assets remain immutable; do not move an existing release tag or replace published assets. A release in a private repository is available only to people with repository access. Repository visibility is managed separately from publication.
+For example, the 1.0.0 publication tag is `v1.0.0`. Published assets remain immutable; do not move an existing release tag or replace published assets. A release in a private repository is available only to people with repository access. Repository visibility is managed separately from publication.

@@ -678,3 +678,20 @@ Fixtures exercise the full-size center hold, travel midpoint and handoff,
 one pulse peak, ring position during departure, no repeat during flight,
 independent preferences and moved/scaled minimaps. Native appearance and
 timing remain pending; this is a prerelease.
+
+### Stable acceptance: 1.0.0
+
+On 2026-10-06 the user accepted RC4 (0.7.8), reporting “Everything is green”,
+fulfilling the agreed condition for full release. The 1.0.0 runtime matches
+that candidate except for Core.lua and TOC version labels. Native acceptance
+is a user-reported in-game pass on the current Forever installation, with
+1.60.1 / build 70235 / interface 16001 derived from local client metadata.
+No automatic native capture, other-client validation or exhaustive quest
+coverage is inferred from this report. The client test plan remains the
+regression checklist for subsequent changes.
+
+Release preparation now also accepts stable profiles with verified native
+acceptance, explicit client evidence and no pending acceptance checks. Tagged
+publication uses the validated profile to select prerelease versus stable
+status, uploads all assets while draft, then publishes. Stable releases become
+the latest download; previews do not. Existing RC tags and assets remain intact.

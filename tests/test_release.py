@@ -1,4 +1,4 @@
-"""Preview integrity and portable source packaging, without native-client claims."""
+"""Release integrity and portable source packaging, without native-client claims."""
 
 from contextlib import redirect_stderr, redirect_stdout
 import io
@@ -7,7 +7,9 @@ import os
 import re
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
+import textwrap
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -73,6 +75,98 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'check failed'):
             self.prepare(fail)
         self.assertFalse((self.root / 'dist').exists())
+
+    def test_stable_bundle_preserves_client_acceptance_and_runs_checks(self):
+        self.value.update(status='stable', nativeValidation='verified', pending=[],
+                          observedClient=dict(name='Fixture client', version='1.0', build='123'),
+                          clientEvidence='Fixture user acceptance, not an actual client observation.')
+        self.write_profile()
+        checked = []
+        destination = self.prepare(lambda: checked.append(True))
+        self.assertEqual(checked, [True])
+        record = json.loads((destination / 'RELEASE.json').read_text())
+        self.assertEqual(record['status'], 'stable')
+        self.assertEqual(record['nativeValidation'], 'verified')
+        self.assertEqual(record['clientEvidence'], self.value['clientEvidence'])
+        self.assertEqual(record['observedClient'], self.value['observedClient'])
+        self.assertEqual(record['pending'], [])
+        for line in (destination / 'SHA256SUMS').read_text().splitlines():
+            digest, name = line.split('  ')
+            self.assertEqual(digest, package.sha((destination / name).read_bytes()))
+
+    def test_stable_without_client_acceptance_fails_before_checks(self):
+        self.value.update(status='stable', nativeValidation='verified', pending=[],
+                          observedClient=dict(name='Fixture client', version='1.0', build='123'),
+                          clientEvidence='Fixture user acceptance.')
+        valid = self.value.copy()
+        for field, incorrect in (('pending', ['unfinished']), ('pending', None),
+                                 ('clientEvidence', ''), ('clientEvidence', ' '),
+                                 ('observedClient', {}), ('observedClient', None),
+                                 ('observedClient', dict(name='Fixture', version='1.0', build=''))):
+            with self.subTest(field=field, value=incorrect):
+                self.value = dict(valid, **{field: incorrect})
+                self.write_profile()
+                with self.assertRaisesRegex(ValueError, 'client evidence'):
+                    self.prepare(lambda: self.fail('invalid acceptance must not run checks'))
+                self.assertFalse((self.root / 'dist').exists())
+
+    def publish_fixture(self, status, fail_upload=False):
+        if os.name != 'posix' or not shutil.which('bash'):
+            self.skipTest('hosted publication uses Bash on Linux')
+        directory = self.root / f'dist/releases/JustAHint-{self.version}-interface16001'
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / 'RELEASE.json').write_text(json.dumps(dict(status=status)))
+        (directory / 'RELEASE_NOTES.md').write_text('Fixture release notes\n')
+        (directory / 'JustAHint.zip').write_bytes(b'fixture archive')
+        binary = self.root / 'bin'
+        binary.mkdir(exist_ok=True)
+        gh = binary / 'gh'
+        gh.write_text(f'#!{os.sys.executable}\n' + textwrap.dedent('''\
+            import json, os, sys
+            with open(os.environ['JAH_GH_LOG'], 'a') as log:
+                log.write(json.dumps(sys.argv[1:]) + '\\n')
+            if sys.argv[1:3] == ['release', 'create'] and os.environ['JAH_FAIL_UPLOAD'] == '1':
+                sys.exit(1)
+            '''))
+        gh.chmod(0o755)
+        log = self.root / 'gh-commands.jsonl'
+        log.write_text('')
+        env = dict(os.environ, PATH=str(binary) + os.pathsep + os.environ['PATH'],
+                   RELEASE_TAG='v' + self.version, GITHUB_REPOSITORY='fixture/addon',
+                   GH_TOKEN='fixture-token', JAH_GH_LOG=str(log),
+                   JAH_FAIL_UPLOAD='1' if fail_upload else '0')
+        workflow = (REPO / '.github/workflows/publish-release.yml').read_text()
+        script = textwrap.dedent(workflow.rsplit('        run: |\n', 1)[1])
+        result = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', script],
+                                cwd=self.root, env=env, capture_output=True, text=True)
+        return result, [json.loads(line) for line in log.read_text().splitlines()]
+
+    def test_publisher_marks_stable_latest_and_previews_prerelease(self):
+        for status, prerelease, latest in (('preview', 'true', 'false'), ('stable', 'false', 'true')):
+            with self.subTest(status=status):
+                result, commands = self.publish_fixture(status)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(len(commands), 2)
+                create, publish = commands
+                self.assertEqual(create[:2], ['release', 'create'])
+                self.assertIn('--draft', create)
+                self.assertIn('--latest=false', create)
+                self.assertIn('--verify-tag', create)
+                self.assertIn('--prerelease=' + prerelease, create)
+                self.assertEqual(publish[:2], ['release', 'edit'])
+                self.assertIn('--draft=false', publish)
+                self.assertIn('--prerelease=' + prerelease, publish)
+                self.assertIn('--latest=' + latest, publish)
+                self.assertIn(f'dist/releases/JustAHint-{self.version}-interface16001/JustAHint.zip', create)
+
+    def test_publisher_never_publishes_after_failed_upload_or_unknown_status(self):
+        result, commands = self.publish_fixture('stable', fail_upload=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(len(commands), 1)
+        self.assertEqual(commands[0][:2], ['release', 'create'])
+        result, commands = self.publish_fixture('unknown')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(commands, [])
 
     def test_source_bundle_preserves_readme_images_without_installing_them(self):
         image = self.root / 'docs/images/hint.png'

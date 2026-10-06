@@ -1,4 +1,4 @@
-name: Publish preview
+name: Publish release
 on:
   push:
     tags:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-preview-${{ github.ref }}
+  group: publish-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
           python-version: '3.11'
       - name: Install Lua 5.1
         run: sudo apt-get update && sudo apt-get install -y lua5.1
-      - name: Check and prepare tagged preview
+      - name: Check and prepare tagged release
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
@@ -33,15 +33,30 @@ jobs:
           python dev.py release --version "$RELEASE_VERSION" --interface 16001
           cd "dist/releases/JustAHint-$RELEASE_VERSION-interface16001"
           sha256sum --check SHA256SUMS
-      - name: Upload complete draft and publish prerelease
+      - name: Upload complete draft and publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           RELEASE_VERSION="${RELEASE_TAG#v}"
           RELEASE_DIR="dist/releases/JustAHint-$RELEASE_VERSION-interface16001"
+          RELEASE_STATUS="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["status"])' "$RELEASE_DIR/RELEASE.json")"
+          case "$RELEASE_STATUS" in
+            preview)
+              RELEASE_PRERELEASE=true
+              RELEASE_LATEST=false
+              RELEASE_TITLE="Just a Hint $RELEASE_VERSION preview"
+              ;;
+            stable)
+              RELEASE_PRERELEASE=false
+              RELEASE_LATEST=true
+              RELEASE_TITLE="Just a Hint $RELEASE_VERSION"
+              ;;
+            *) echo "Unsupported release status" >&2; exit 1 ;;
+          esac
           gh release create "$RELEASE_TAG" "$RELEASE_DIR"/* \
-            --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease \
-            --title "Just a Hint $RELEASE_VERSION preview" \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease="$RELEASE_PRERELEASE" \
+            --latest=false --title "$RELEASE_TITLE" \
             --notes-file "$RELEASE_DIR/RELEASE_NOTES.md"
-          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false \
+            --prerelease="$RELEASE_PRERELEASE" --latest="$RELEASE_LATEST"

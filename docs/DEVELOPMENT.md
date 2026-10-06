@@ -13,7 +13,7 @@ Python 3.11+ builds and installs with its standard library. Full checks addition
 | `python dev.py build --interface VALUE` | Build without a game installation. |
 | `python dev.py install` | Build and install with verified staging and backups. |
 | `python dev.py deploy` | Test → build → install. |
-| `python dev.py release --version 0.7.8 --interface 16001` | Run full checks and prepare a preview bundle without installing or publishing. |
+| `python dev.py release --version 1.0.0 --interface 16001` | Run full checks and prepare a release bundle without installing or publishing. |
 | `python dev.py evidence` | Import actual SavedVariables into ignored evidence JSON. |
 | `python dev.py rollback` | Restore the previous installation from this checkout. |
 | `python dev.py deploy --addon JustAHintDiagnostics` | Test, build, and install only the diagnostic. |
@@ -34,4 +34,4 @@ CI checks Python tools and fixture builds on Windows, macOS, and Linux, and Lua 
 
 The legacy `scripts/package.py` entrypoint remains available and retains its diagnostic default. New automation should call `dev.py` so it follows the same pipeline as contributors. Restore in-game guidance with `/jah restore` before disabling or uninstalling the reader: file rollback does not run in-game setting restoration.
 
-See [preview preparation](RELEASING.md) for version/interface profiles, source archives and the manual artifact workflow.
+See [release preparation](RELEASING.md) for version/interface profiles, source archives and the manual artifact workflow.

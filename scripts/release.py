@@ -1,4 +1,4 @@
-"""Prepare reproducible preview assets; never install or publish them."""
+"""Prepare reproducible release assets; never install or publish them."""
 
 import json
 from pathlib import Path
@@ -26,8 +26,18 @@ def profile(root: Path, addon: str, version: str, interface: int) -> dict:
     value = json.loads(path.read_text(encoding="utf-8"))
     if (value.get("schema"), value.get("addon"), value.get("version"), value.get("interface")) != (1, addon, version, interface):
         raise ValueError("release profile must match addon, version and interface")
-    if value.get("status") != "preview" or value.get("nativeValidation") != "partial":
-        raise ValueError("this pipeline prepares partially verified previews only")
+    state = (value.get("status"), value.get("nativeValidation"))
+    if state not in (("preview", "partial"), ("stable", "verified")):
+        raise ValueError("release must be a partial preview or a verified stable release")
+    if state[0] == "stable":
+        client = value.get("observedClient")
+        evidence = value.get("clientEvidence")
+        if (not isinstance(client, dict)
+                or any(not isinstance(client.get(key), str) or not client[key].strip()
+                       for key in ("name", "version", "build"))
+                or not isinstance(evidence, str) or not evidence.strip()
+                or value.get("pending") != []):
+            raise ValueError("stable release requires client evidence and no pending acceptance checks")
     source = root / "addon" / addon
     toc = (source / f"{addon}.toc.in").read_text(encoding="utf-8")
     core = (source / "Core.lua").read_text(encoding="utf-8")
