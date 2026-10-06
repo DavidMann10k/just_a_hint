@@ -632,3 +632,20 @@ Fixtures exercise the actual hint-to-feedback arrival path, exact pulse count
 and duration, distinct sound and fallback, preference persistence, absence of
 new guidance, quiet lifecycle cleanup, point and region arrivals, interrupted
 dwell, hidden/moved/scaled minimaps and sound/rendering failures.
+
+### Arrival chime: 0.7.6 / RC2
+
+The user reports the RC1 arrival click as too subtle and requests a chime or
+discovery cue that draws attention without being overbearing. This is feedback
+on the sound; it does not establish a pass for the rest of the client checks.
+Arrival now selects TUTORIAL_POPUP (7355), defined in Blizzard's modern
+[sound-kit table](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_SharedXML/Mainline/SoundKitConstants.lua),
+with MAP_PING (3175) as a fallback when the tutorial constant is absent.
+Playback remains a single SFX-channel call controlled by the saved sound
+preference. Direction requests keep the checkbox click; the two green arrival
+pulses, dwell, lifecycle rules and independent preferences retain their existing
+behavior. Existing fixtures now check the revised sound and fallback IDs.
+
+The replacement cue's audibility and subjective fit in Forever are pending an
+in-game listen. This candidate remains a prerelease; full release waits for the
+user's client-test confirmation.

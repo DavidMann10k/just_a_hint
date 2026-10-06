@@ -2,7 +2,7 @@
 ## Title: Just a Hint
 ## Notes: Keeps the quest list, hides automatic guidance and offers hints on request. Active by default. /jah opens settings.
 ## Author: Just a Hint contributors
-## Version: 0.7.5
+## Version: 0.7.6
 ## SavedVariables: JustAHintDB
 
 Core.lua

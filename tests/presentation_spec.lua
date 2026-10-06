@@ -92,8 +92,7 @@ local function fixture(saved)
  env.HideUIPanel=function(frame) s.closes=(s.closes or 0)+1;frame:Hide() end
  env.GetTime=function() return s.time end
  env.InCombatLockdown=function() return s.combat end
- env.SOUNDKIT={IG_MAINMENU_OPTION_CHECKBOX_ON=856,IG_MAINMENU_OPTION_CHECKBOX_OFF=857,
-  UI_MAP_WAYPOINT_SUPER_TRACK_OFF=171361}
+ env.SOUNDKIT={IG_MAINMENU_OPTION_CHECKBOX_ON=856,TUTORIAL_POPUP=7355,MAP_PING=3175}
  env.PlaySound=function(id,channel)
   s.sounds=s.sounds+1;s.soundLog[#s.soundLog+1]={id=id,channel=channel}
   if s.soundError then error('sound unavailable') end
@@ -288,7 +287,7 @@ test('arrival clears the bearing before one distinct sound and exactly two green
  local ns,s=arrivalFixture();ns.Hints.Request(1);local owner=ns.Hints.active
  equal(s.soundLog[1].id,856)
  arrive(ns,s)
- equal(s.sounds,2);equal(s.soundLog[2].id,171361);equal(s.soundLog[2].channel,'SFX')
+ equal(s.sounds,2);equal(s.soundLog[2].id,7355);equal(s.soundLog[2].channel,'SFX')
  equal(ns.Feedback.arriving,owner);equal(ns.Feedback.flying,nil)
  local frame=ns.Feedback.frame
  near(frame.rim[1].color[1],0.35);near(frame.rim[1].color[2],0.9);near(frame.rim[1].color[3],0.5)
@@ -351,12 +350,12 @@ end)
 test('arrival uses an older built-in fallback and sound failures do not prevent pulses',function()
  for _,case in ipairs({'fallback','missing','error'}) do
   local ns,s,env=arrivalFixture();ns.Hints.Request(1)
-  if case=='fallback' then env.SOUNDKIT.UI_MAP_WAYPOINT_SUPER_TRACK_OFF=nil
+  if case=='fallback' then env.SOUNDKIT.TUTORIAL_POPUP=nil
   elseif case=='missing' then env.SOUNDKIT=nil
   else s.soundError=true end
   arrive(ns,s);assert(ns.Feedback.arriving)
   equal(s.sounds,case=='missing' and 1 or 2)
-  if case=='fallback' then equal(s.soundLog[2].id,857) end
+  if case=='fallback' then equal(s.soundLog[2].id,3175) end
   ns.Feedback.Update(0.3);assert(ns.Feedback.frame.rim[1].alpha>0)
  end
 end)

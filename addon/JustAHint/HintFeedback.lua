@@ -221,8 +221,8 @@ function Feedback.Arrived(owner)
         Feedback.Hide()
         local options = NS.DB.presentation
         if options.sound and SOUNDKIT then
-            -- Use the native end-of-tracking cue, with a quiet older-UI fallback.
-            for _, key in ipairs({ "UI_MAP_WAYPOINT_SUPER_TRACK_OFF", "IG_MAINMENU_OPTION_CHECKBOX_OFF" }) do
+            -- A notification chime acknowledges arrival; older clients can ping.
+            for _, key in ipairs({ "TUTORIAL_POPUP", "MAP_PING" }) do
                 local sound = SOUNDKIT[key]
                 if NS.ID(sound) then NS.Call("PlaySound", sound, "SFX"); break end
             end

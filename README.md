@@ -8,7 +8,7 @@ That way your brain can stay engaged with, and immersed in, the game world.
 
 Just a Hint activates automatically. It keeps Blizzard's quest list and objective counts on the right, hides its guidance buttons and disables automatic navigation, map objectives and minimap quest markers. Click a quest to open the Map & Quest Log; request hints there.
 
-[Download 0.7.5 preview](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.5) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
+[Download 0.7.6 RC2](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.6) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
 
 Target: **Forever beta 1.60.1 / build 70235 / interface 16001**.
 
@@ -28,7 +28,7 @@ The gold arrow on the minimap's edge points toward the requested objective. Foll
 
 ![Gold arrow on the minimap pointing toward the requested objective](docs/images/jah-pointer.png)
 
-As you get close, the arrow disappears with a distinct sound and two green minimap pulses. It stays cleared until your next request. Open the same quest in the Map & Quest Log and press **Hint** again when you want a local clue. For a quest with a search area, the map highlights that area so you can search it yourself.
+As you get close, the arrow disappears with a notification chime and two green minimap pulses. It stays cleared until your next request. Open the same quest in the Map & Quest Log and press **Hint** again when you want a local clue. For a quest with a search area, the map highlights that area so you can search it yourself.
 
 ![Requested quest search area highlighted beside the quest text](docs/images/jah-zone.png)
 

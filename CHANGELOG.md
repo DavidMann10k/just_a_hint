@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.6 — RC2
+
+- Use the built-in tutorial-notification chime for arrival, with the minimap ping as a fallback. The requested-direction click and two green arrival pulses retain their existing behavior.
+- Updating an existing installation requires `/reload`.
+
 ## 0.7.5 — arrival feedback
 
 - When a requested direction clears on arrival, play one built-in waypoint deactivation cue and pulse the minimap rim green twice over 1.2 seconds.
