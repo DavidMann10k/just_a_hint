@@ -649,3 +649,16 @@ behavior. Existing fixtures now check the revised sound and fallback IDs.
 The replacement cue's audibility and subjective fit in Forever are pending an
 in-game listen. This candidate remains a prerelease; full release waits for the
 user's client-test confirmation.
+
+### Arrival ping: 0.7.7 / RC3
+
+The user auditioned and selected MAP_PING (3175) for arrival after rejecting
+the tutorial cue's association with messaging. Arrival now plays that built-in
+cue once through the SFX channel. If the kit is unavailable, it remains silent;
+there is no substitute notification sound. The two green pulses and existing
+preferences and lifecycle rules retain their behavior. Fixtures cover the
+selected kit, missing constants and playback failure.
+
+The integrated arrival effect and remaining client checks still need a native
+pass before full release. The selected ID is recorded in Blizzard's
+[sound-kit table](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_SharedXML/Mainline/SoundKitConstants.lua).

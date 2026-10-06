@@ -1,4 +1,4 @@
-# Release review — 0.7.6 RC2
+# Release review — 0.7.7 RC3
 
 Target: Forever beta 1.60.1 / build 70235 / interface 16001.
 
@@ -8,7 +8,7 @@ The native quest list and objective counts remain visible on the right. Its ques
 
 Nearby location pins render at 12 screen units. The README includes the illustrated usage guide and a branding banner; source archives preserve screenshots and branding assets as binary files.
 
-Arrival clears a visible requested bearing before playing one built-in tutorial-notification chime and two green minimap pulses. The effects respect the existing sound and minimap-pulse preferences. They add no quest detail and cannot replay after interruption. Fixtures cover pulse count and duration, sound selection/fallback, point and region arrivals, quiet cleanup, moved/scaled minimaps and restored gold request feedback. The revised sound's fit and rendering on the target client remain pending.
+Arrival clears a visible requested bearing before playing one built-in minimap ping and two green minimap pulses. The effects respect the existing sound and minimap-pulse preferences. They add no quest detail and cannot replay after interruption. Fixtures cover pulse count and duration, sound selection and unavailability, point and region arrivals, quiet cleanup, moved/scaled minimaps and restored gold request feedback. The user auditioned and selected the minimap ping; arrival rendering on the target client remains pending.
 
 Behavioral fixtures cover startup, lazy loading, combat deferral, upgrade/reload, opt-out, visible quest content, new rows, native quest-click delegation, guidance-button settings and restoration. Native acceptance remains pending for the supported client, including repeated map opening, combat, quest-item access and other UI addons. See [client checks](CLIENT_TEST_PLAN.md).
 

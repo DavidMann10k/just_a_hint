@@ -220,12 +220,8 @@ function Feedback.Arrived(owner)
         if not NS.Guard.active or NS.Guard.problem or not Minimap or not Minimap:IsVisible() then return end
         Feedback.Hide()
         local options = NS.DB.presentation
-        if options.sound and SOUNDKIT then
-            -- A notification chime acknowledges arrival; older clients can ping.
-            for _, key in ipairs({ "TUTORIAL_POPUP", "MAP_PING" }) do
-                local sound = SOUNDKIT[key]
-                if NS.ID(sound) then NS.Call("PlaySound", sound, "SFX"); break end
-            end
+        if options.sound and SOUNDKIT and NS.ID(SOUNDKIT.MAP_PING) then
+            NS.Call("PlaySound", SOUNDKIT.MAP_PING, "SFX")
         end
         if not options.minimapPulse then return end
         local frame = ensureFrame()

@@ -1,5 +1,5 @@
 local _, NS = ...
-NS.VERSION = "0.7.6"
+NS.VERSION = "0.7.7"
 
 function NS.Initialize()
     if type(JustAHintDB) ~= "table" then JustAHintDB = {} end

@@ -10,7 +10,7 @@ Target: Forever beta 1.60.1 / build 70235 / interface 16001.
 
 Just a Hint keeps Blizzard's quest list and objective counts on the right, with guidance buttons hidden. Automatic navigation and quest markers on the map and minimap are disabled while it is active. Click a quest to open the Map & Quest Log.
 
-Open the Map & Quest Log, select a quest and press **Hint** beneath the native controls. A distant request sends an arrow to the minimap; a nearby request shows a search area or location pin. Arrival clears the arrow with a notification chime and two green minimap pulses. More detail requires another request. Hint is available only for usable destinations on the current map and is disabled while data loads.
+Open the Map & Quest Log, select a quest and press **Hint** beneath the native controls. A distant request sends an arrow to the minimap; a nearby request shows a search area or location pin. Arrival clears the arrow with a minimap ping and two green minimap pulses. More detail requires another request. Hint is available only for usable destinations on the current map and is disabled while data loads.
 
 **Clear Hint** removes visible guidance. Closing the map clears an area or pin. Quest stage changes, zoning and reload also clear guidance.
 

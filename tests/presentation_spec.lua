@@ -92,7 +92,7 @@ local function fixture(saved)
  env.HideUIPanel=function(frame) s.closes=(s.closes or 0)+1;frame:Hide() end
  env.GetTime=function() return s.time end
  env.InCombatLockdown=function() return s.combat end
- env.SOUNDKIT={IG_MAINMENU_OPTION_CHECKBOX_ON=856,TUTORIAL_POPUP=7355,MAP_PING=3175}
+ env.SOUNDKIT={IG_MAINMENU_OPTION_CHECKBOX_ON=856,MAP_PING=3175}
  env.PlaySound=function(id,channel)
   s.sounds=s.sounds+1;s.soundLog[#s.soundLog+1]={id=id,channel=channel}
   if s.soundError then error('sound unavailable') end
@@ -287,7 +287,7 @@ test('arrival clears the bearing before one distinct sound and exactly two green
  local ns,s=arrivalFixture();ns.Hints.Request(1);local owner=ns.Hints.active
  equal(s.soundLog[1].id,856)
  arrive(ns,s)
- equal(s.sounds,2);equal(s.soundLog[2].id,7355);equal(s.soundLog[2].channel,'SFX')
+ equal(s.sounds,2);equal(s.soundLog[2].id,3175);equal(s.soundLog[2].channel,'SFX')
  equal(ns.Feedback.arriving,owner);equal(ns.Feedback.flying,nil)
  local frame=ns.Feedback.frame
  near(frame.rim[1].color[1],0.35);near(frame.rim[1].color[2],0.9);near(frame.rim[1].color[3],0.5)
@@ -347,15 +347,14 @@ test('arrival pulses follow a moved and scaled minimap without needing a bearing
  equal(ns.Bearing.frame:IsShown(),false);equal(ns.Hints.active,nil)
 end)
 
-test('arrival uses an older built-in fallback and sound failures do not prevent pulses',function()
- for _,case in ipairs({'fallback','missing','error'}) do
+test('missing arrival sound kits and playback failures do not prevent pulses',function()
+ for _,case in ipairs({'missing-ping','missing','error'}) do
   local ns,s,env=arrivalFixture();ns.Hints.Request(1)
-  if case=='fallback' then env.SOUNDKIT.TUTORIAL_POPUP=nil
+  if case=='missing-ping' then env.SOUNDKIT.MAP_PING=nil
   elseif case=='missing' then env.SOUNDKIT=nil
   else s.soundError=true end
   arrive(ns,s);assert(ns.Feedback.arriving)
-  equal(s.sounds,case=='missing' and 1 or 2)
-  if case=='fallback' then equal(s.soundLog[2].id,3175) end
+  equal(s.sounds,case=='error' and 2 or 1)
   ns.Feedback.Update(0.3);assert(ns.Feedback.frame.rim[1].alpha>0)
  end
 end)

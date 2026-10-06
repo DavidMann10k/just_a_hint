@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.7 — RC3
+
+- Use the built-in minimap ping for arrival, alongside two green minimap pulses.
+- Updating an existing installation requires `/reload`.
+
 ## 0.7.6 — RC2
 
 - Use the built-in tutorial-notification chime for arrival, with the minimap ping as a fallback. The requested-direction click and two green arrival pulses retain their existing behavior.
