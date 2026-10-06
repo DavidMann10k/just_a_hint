@@ -220,11 +220,17 @@ test('requested arrow reveals at screen center, follows a curved trail and hands
  equal(frame.flight.atlas,ns.Bearing.atlas);equal(ns.Bearing.frame.arrow.alpha,0)
  local point=frame.flight.points[1];near(point[4],960);near(point[5],540)
  ns.Feedback.Update(0.18);near(frame.flight.height,64);equal(frame.flight.alpha,1)
- ns.Feedback.Update(0.46);point=frame.flight.points[1]
+ ns.Feedback.Update(0.12);point=frame.flight.points[1]
+ near(point[4],960);near(point[5],540);near(frame.rim[1].alpha,0.7)
+ near(frame.rim[1].points[1][5],540)
+ near(frame.rim[1].points[1][4],960+64*0.65+6)
+ ns.Feedback.Update(0.125);point=frame.flight.points[1]
+ near(point[4],960);near(point[5],540);assert(frame.rim[1].alpha>0)
+ ns.Feedback.Update(0.005+0.68/0.75/2);point=frame.flight.points[1]
  near(point[4],(960+1824)/2-380*0.06);near(point[5],(540+920)/2+864*0.06)
  assert(frame.flight.height<64);assert(frame.trail[1]:IsShown());assert(frame.trail[1].alpha>0)
  equal(frame.rim[1].alpha,0);equal(frame.halo[1].alpha,0)
- ns.Feedback.Update(0.33);point=frame.flight.points[1]
+ ns.Feedback.Update(0.68/0.75/2-0.01);point=frame.flight.points[1]
  near(point[4],1824,1);near(point[5],920,1);near(frame.flight.height,24,0.1)
  near(frame.flight.rotation,-math.pi/2,0.01)
  ns.Feedback.Update(0.02);equal(ns.Feedback.flying,nil);equal(frame.flight:IsShown(),false)
@@ -236,6 +242,29 @@ test('requested arrow reveals at screen center, follows a curved trail and hands
  ns.Feedback.BearingRequested(sample(1,0));equal(ns.Feedback.frame,frame);equal(#frame.trail,5)
  equal(ns.Feedback.flying,true);equal(s.requests,0)
 end)
+test('one center pulse follows the departing arrow and respects arrow-pulse preferences',function()
+ for _,options in ipairs({{}, {arrowPulse=false}, {minimapPulse=false}}) do
+  local ns,s,env=fixture({presentation=options});env.Minimap.rect={1680,840,160,160}
+  ns.Feedback.BearingRequested(sample(1,0));local frame=ns.Feedback.frame
+  ns.Feedback.Update(0.3)
+  near(frame.flight.points[1][4],960);near(frame.flight.points[1][5],540)
+  near(frame.rim[1].alpha,options.arrowPulse==false and 0 or 0.7)
+  ns.Feedback.Update(0.2)
+  local arrowPoint,ringPoint=frame.flight.points[1],frame.rim[1].points[1]
+  assert(arrowPoint[4]~=960 or arrowPoint[5]~=540)
+  near(ringPoint[5],arrowPoint[5])
+  near(ringPoint[4],arrowPoint[4]+math.max(frame.flight.width,frame.flight.height)*0.65+10)
+  if options.arrowPulse~=false then assert(frame.rim[1].alpha>0 and frame.rim[1].alpha<0.7) end
+  ns.Feedback.Update(0.1);equal(frame.rim[1].alpha,0)
+  ns.Feedback.Update(0.2);equal(frame.rim[1].alpha,0)
+  ns.Feedback.Update(0.4);equal(ns.Feedback.flying,true);equal(frame.rim[1].alpha,0)
+  ns.Feedback.Update(0.14);equal(ns.Feedback.flying,nil)
+  ns.Feedback.Update(0.15)
+  equal(frame.rim[1].alpha>0,options.minimapPulse~=false)
+  equal(frame.halo[1].alpha>0,options.arrowPulse~=false)
+  equal(s.sounds,1);equal(#s.messages,1)
+ end
+end)
 test('flight and landing track the live bearing and moved or scaled minimap on wide and narrow screens',function()
  for _,screen in ipairs({{1920,1080},{800,600}}) do
   local ns,s,env=fixture();env.UIParent:SetSize(screen[1],screen[2]);env.UIParent:SetScale(0.8)
@@ -243,7 +272,7 @@ test('flight and landing track the live bearing and moved or scaled minimap on w
   ns.Feedback.BearingRequested(sample(1,0));local frame=ns.Feedback.frame
   near(frame.flight.points[1][4],screen[1]/2);near(frame.flight.points[1][5],screen[2]/2)
   ns.Feedback.Update(0.4);env.Minimap.rect={520,420,200,160};ns.Feedback.x,ns.Feedback.y=0,-1
-  ns.Feedback.Update(0.4);ns.Feedback.Update(0.17)
+  ns.Feedback.Update(0.4);ns.Feedback.Update(0.4);ns.Feedback.Update(0.18+0.25+0.68/0.75-1.21)
   -- Effective scale ratio is 0.75: the south-rim position is (465, 327).
   near(frame.flight.points[1][4],465,1);near(frame.flight.points[1][5],327,1)
   near(math.abs(frame.flight.rotation),math.pi,0.01);near(frame.flight.height,18,0.1)
@@ -262,7 +291,7 @@ test('flight remains independent of pulses and can be disabled during animation 
  equal(ns.Feedback.elapsed,nil);equal(ns.Feedback.frame:IsShown(),false);equal(ns.Bearing.frame.arrow.alpha,1)
  equal(ns.Hints.active,active);equal(ns.Bearing.frame:IsVisible(),true)
  ns.SettingsPanel.Set('arrowFlight',true);equal(ns.Feedback.elapsed,nil)
- ns.Feedback.BearingRequested(sample(1,0));ns.Feedback.Update(0.4);ns.Feedback.Update(0.4);ns.Feedback.Update(0.2)
+ ns.Feedback.BearingRequested(sample(1,0));ns.Feedback.Update(0.4);ns.Feedback.Update(0.4);ns.Feedback.Update(0.4);ns.Feedback.Update(0.2)
  equal(ns.Feedback.elapsed,nil);equal(ns.Bearing.frame.arrow.alpha,1);equal(ns.Hints.active,active)
 end)
 test('stalls and unavailable animation geometry or artwork restore the bearing without replaying feedback',function()
@@ -305,7 +334,7 @@ end)
 
 test('arrival works after the request animation has finished',function()
  local ns,s=arrivalFixture();ns.Hints.Request(1)
- for i=1,7 do ns.Feedback.Update(0.4) end
+ for i=1,8 do ns.Feedback.Update(0.4) end
  equal(ns.Feedback.frame:IsShown(),false)
  arrive(ns,s);equal(ns.Feedback.elapsed,0);equal(s.sounds,2)
  ns.Feedback.Update(0.3);assert(ns.Feedback.frame.rim[1].alpha>0)
@@ -515,7 +544,7 @@ test('native button dispatch runs the actual Hint service only on click',functio
  ns.NativePane.RefreshButton();equal(s.closes,1);equal(ns.Hints.active.id,42)
  equal(ns.Feedback.flying,true);equal(ns.Bearing.frame.arrow.alpha,0)
  hintTicker.scripts.OnUpdate(nil,0.01);equal(ns.Bearing.frame.arrow.alpha,0)
- for _,dt in ipairs({0.4,0.4,0.2}) do ns.Feedback.Update(dt) end
+ for _,dt in ipairs({0.4,0.4,0.4,0.2}) do ns.Feedback.Update(dt) end
  equal(ns.Feedback.flying,nil);equal(ns.Bearing.frame.arrow.alpha,1)
  hintTicker.scripts.OnUpdate(nil,0.01);equal(ns.Bearing.frame.arrow.alpha,1)
  ns.Hints.Clear('cleared');equal(ns.Feedback.elapsed,nil);equal(ns.Feedback.frame:IsShown(),false)

@@ -662,3 +662,19 @@ selected kit, missing constants and playback failure.
 The integrated arrival effect and remaining client checks still need a native
 pass before full release. The selected ID is recorded in Blizzard's
 [sound-kit table](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_SharedXML/Mainline/SoundKitConstants.lua).
+
+### Center hold and traveling reveal pulse: 0.7.8 / RC4
+
+The requested arrow retains its 0.18-second reveal, then holds at full size
+for 0.25 seconds. Travel duration changes from 0.68 to 0.68 / 0.75 seconds:
+a 25% reduction in speed along the same eased arc, about 0.91 seconds in
+flight and 1.34 seconds through handoff. A single 0.6-second gold ring
+peaks at 0.3 seconds during the center hold, follows the arrow on departure
+and fades completely before landing. It reuses the gold minimap-rim artwork
+and follows the arrow-pulse preference. The landing ripple, minimap ping
+and two green arrival pulses retain their behavior.
+
+Fixtures exercise the full-size center hold, travel midpoint and handoff,
+one pulse peak, ring position during departure, no repeat during flight,
+independent preferences and moved/scaled minimaps. Native appearance and
+timing remain pending; this is a prerelease.

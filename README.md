@@ -8,7 +8,7 @@ That way your brain can stay engaged with, and immersed in, the game world.
 
 Just a Hint activates automatically. It keeps Blizzard's quest list and objective counts on the right, hides its guidance buttons and disables automatic navigation, map objectives and minimap quest markers. Click a quest to open the Map & Quest Log; request hints there.
 
-[Download 0.7.7 RC3](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.7) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
+[Download 0.7.8 RC4](https://github.com/DavidMann10k/just_a_hint/releases/tag/v0.7.8) · [Install](docs/INSTALL.md) · [Report a bug](https://github.com/DavidMann10k/just_a_hint/issues)
 
 Target: **Forever beta 1.60.1 / build 70235 / interface 16001**.
 
@@ -20,7 +20,7 @@ Click a quest in the list on the right, or open the Map & Quest Log and select o
 
 ![Hint beneath the standard quest controls, before a request](docs/images/jah-hint.png)
 
-If you're some distance away, a request closes the map and sends an arrow from screen center to the minimap. With chat feedback enabled, you also get a direction and a rough distance:
+If you're some distance away, a request closes the map. An arrow pauses at screen center inside a gold pulse, then flies to the minimap. With chat feedback enabled, you also get a direction and a rough distance:
 
 ![Requested direction in chat: Head west. It's not far from here.](docs/images/jah-direction.png)
 

@@ -1,10 +1,12 @@
-# Release review — 0.7.7 RC3
+# Release review — 0.7.8 RC4
 
 Target: Forever beta 1.60.1 / build 70235 / interface 16001.
 
 Activation defaults on and runs at login once native controls are available and combat has ended. Saved opt-outs and unfinished restoration remain disabled. Native UI modules load without opening or selecting a quest.
 
 The native quest list and objective counts remain visible on the right. Its questPOI setting suppresses guidance buttons; quest clicks still open native map details. The addon reads tracker availability and visibility without changing frame parents, layout, collapse state, quest items or handlers. Restore returns saved guidance settings, persists the opt-out and retains failed restoration data for retry.
+
+The requested arrow reveals over 0.18 seconds, holds at screen center for 0.25 seconds and travels to the minimap over about 0.91 seconds, 25% slower than before. One gold ring peaks during the hold and follows the arrow as it fades; the arrow-pulse preference controls it. Fixtures cover the dwell, slower path, ring tracking, preference independence and landing handoff. Native timing and appearance remain pending.
 
 Nearby location pins render at 12 screen units. The README includes the illustrated usage guide and a branding banner; source archives preserve screenshots and branding assets as binary files.
 

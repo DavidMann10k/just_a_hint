@@ -4,7 +4,8 @@ NS.Feedback = Feedback
 
 local directions = { "north", "northeast", "east", "southeast", "south",
     "southwest", "west", "northwest" }
-local REVEAL, HOLD, TRAVEL, PULSE = 0.18, 0.12, 0.68, 1.2
+local REVEAL, HOLD, TRAVEL, PULSE = 0.18, 0.25, 0.68 / 0.75, 1.2
+local CENTER_PULSE = 0.6
 local FLIGHT = REVEAL + HOLD + TRAVEL
 local ARRIVAL_PULSE, ARRIVAL_COUNT = 0.6, 2
 
@@ -160,14 +161,16 @@ local function drawFlight(tx, ty, scale)
         texture:SetPoint("CENTER", frame, "BOTTOMLEFT", x, y)
         texture:SetAlpha(alpha * reveal)
         texture:Show()
+        return x, y, size
     end
     for index, texture in ipairs(frame.trail) do
         local age = Feedback.elapsed - index * 0.035
         if age > REVEAL + HOLD then draw(texture, age, 0.22 * (1 - index / (#frame.trail + 1)))
         else texture:Hide() end
     end
-    draw(frame.flight, Feedback.elapsed, 1)
+    local x, y, size = draw(frame.flight, Feedback.elapsed, 1)
     arrow:SetAlpha(0)
+    return x, y, size
 end
 
 function Feedback.Update(dt)
@@ -201,7 +204,15 @@ function Feedback.Update(dt)
         if not Feedback.flying and (not options.arrowPulse and not options.minimapPulse
             or Feedback.elapsed - Feedback.pulseStart >= PULSE) then Feedback.Hide(); return end
         local cx, cy, radius, ax, ay, scale = geometry()
-        if Feedback.flying then drawFlight(ax, ay, scale) end
+        if Feedback.flying then
+            local x, y, size = drawFlight(ax, ay, scale)
+            local phase = math.min(1, Feedback.elapsed / CENTER_PULSE)
+            local alpha = options.arrowPulse and phase < 1 and 0.7 * math.sin(phase * math.pi) ^ 2 or 0
+            -- One reveal pulse follows the arrow as it leaves screen center.
+            drawRing(Feedback.frame.rim, Feedback.frame, x, y, size * 0.65 + phase * 12, alpha)
+            for _, texture in ipairs(Feedback.frame.halo) do texture:SetAlpha(0) end
+            return
+        end
         local phase = math.max(0, (Feedback.elapsed - Feedback.pulseStart) / PULSE)
         local alpha = (1 - phase) ^ 2 * math.sin(math.min(1, phase * 8) * math.pi / 2)
         drawRing(Feedback.frame.rim, Feedback.frame, cx, cy, radius + (3 + phase * 9) * scale,

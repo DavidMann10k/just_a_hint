@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.8 — RC4
+
+- Hold the requested arrow at screen center for 0.25 seconds after its reveal. Pulse the gold ring once there and follow the arrow as the ring fades.
+- Reduce flight speed by 25%; travel to the minimap takes about 0.91 seconds. The center ring follows the arrow-pulse preference.
+- Updating an existing installation requires `/reload`.
+
 ## 0.7.7 — RC3
 
 - Use the built-in minimap ping for arrival, alongside two green minimap pulses.
